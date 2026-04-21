@@ -1,13 +1,15 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { AuthState } from '../types';
+import { AuthMode, AuthState } from '../types';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState<AuthMode>('login');
   const [form, setForm] = useState<AuthState>({
     email: '',
     password: '',
+    message: null,
     error: null,
     loading: false,
   });
@@ -30,22 +32,46 @@ export function LoginPage() {
     if (!supabase) {
       setForm((current) => ({
         ...current,
+        message: null,
         error: 'Supabase is not configured.',
       }));
       return;
     }
 
-    setForm((current) => ({ ...current, error: null, loading: true }));
+    setForm((current) => ({
+      ...current,
+      message: null,
+      error: null,
+      loading: true,
+    }));
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: form.email,
-      password: form.password,
-    });
+    const { data, error } =
+      mode === 'login'
+        ? await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.password,
+          })
+        : await supabase.auth.signUp({
+            email: form.email,
+            password: form.password,
+          });
 
     if (error) {
       setForm((current) => ({
         ...current,
+        message: null,
         error: error.message,
+        loading: false,
+      }));
+      return;
+    }
+
+    if (mode === 'register' && !data.session) {
+      setForm((current) => ({
+        ...current,
+        password: '',
+        message: 'Compte cree. Verifie tes emails pour confirmer ton compte.',
+        error: null,
         loading: false,
       }));
       return;
@@ -54,10 +80,36 @@ export function LoginPage() {
     navigate('/');
   }
 
+  function switchMode(nextMode: AuthMode) {
+    setMode(nextMode);
+    setForm((current) => ({
+      ...current,
+      message: null,
+      error: null,
+    }));
+  }
+
   return (
     <main>
-      <h1>Connexion Technobot</h1>
+      <h1>{mode === 'login' ? 'Connexion Technobot' : 'Inscription Technobot'}</h1>
       <p>Acces organisateur pour suivre les donnees du projet.</p>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => switchMode('login')}
+          disabled={mode === 'login'}
+        >
+          Connexion
+        </button>
+        <button
+          type="button"
+          onClick={() => switchMode('register')}
+          disabled={mode === 'register'}
+        >
+          Inscription
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div>
@@ -94,10 +146,17 @@ export function LoginPage() {
           />
         </div>
 
+        {form.message && <p>{form.message}</p>}
         {form.error && <p>{form.error}</p>}
 
         <button type="submit" disabled={form.loading}>
-          {form.loading ? 'Connexion...' : 'Se connecter'}
+          {form.loading
+            ? mode === 'login'
+              ? 'Connexion...'
+              : 'Inscription...'
+            : mode === 'login'
+              ? 'Se connecter'
+              : "S'inscrire"}
         </button>
       </form>
 
