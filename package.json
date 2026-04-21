@@ -1,7 +1,7 @@
 {
-  "name": "nestjs-prisma-supabase-hex",
+  "name": "technobot-api",
   "version": "0.0.1",
-  "description": "NestJS backend with Prisma, Supabase and hexagonal architecture",
+  "description": "NestJS backend with Supabase and hexagonal architecture",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -17,22 +17,17 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate --schema src/db/schema.prisma",
-    "migration:generate": "prisma migrate dev --schema src/db/schema.prisma",
-    "migration:run": "prisma migrate deploy --schema src/db/schema.prisma"
+    "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
     "@nestjs/platform-express": "^11.1.19",
-    "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.49.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "pg": "^8.11.5",
-    "prisma": "^5.22.0",
+    "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

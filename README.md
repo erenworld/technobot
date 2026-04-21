@@ -1,84 +1,59 @@
-# NestJS + Supabase + Prisma starter
+# Technobot - NestJS + Supabase (Native SDK)
 
-Basic backend-only NestJS starter with:
-- Supabase client
-- Prisma with PostgreSQL
-- Hexagonal-style user module
-- Simple factory pattern for repository selection
-- Dockerized API
+Full-stack robotics tournament management system built with NestJS, Hexagonal Architecture, and the Supabase native SDK.
 
-## 1. Create the env file
+## Technology Stack
+- **Backend**: NestJS (Node.js)
+- **Frontend**: React (Vite)
+- **Database**: PostgreSQL (Supabase)
+- **Infrastructure**: Docker & GitHub Actions
+- **Security**: Supabase Row Level Security (RLS)
 
-```bash
-cp .env.example .env
+## Getting Started
+
+### Prerequisites
+- Docker & Docker Compose
+- Node.js 20+
+- A Supabase project
+
+### Configuration
+Create a `.env` file at the root with your Supabase credentials:
+```env
+SUPABASE_URL=your-project-url
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-Fill these values from your Supabase project:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `DATABASE_URL`
-
-## 2. Run locally
-
+### Development
+Launch the development environment:
 ```bash
-npm install
-npm run start:dev
+docker compose -f docker-compose.dev.yml up --build
+```
+The API will be available at `http://localhost:3000`.
+
+### Database Setup
+To initialize the database schema and security policies:
+```bash
+node setup_database.js
 ```
 
-## 3. Run with Docker
+## Architecture
 
-```bash
-docker compose up --build
-```
+The project follows **Hexagonal Architecture** principles:
+- `domain`: Core business logic and entities.
+- `application`: Use cases and orchestration.
+- `infrastructure`: Concrete implementations (Supabase repository, NestJS controllers).
 
-API:
-- `GET /health`
-- `GET /users`
-- `GET /users/:id`
-- `POST /users`
-- `PATCH /users/:id`
-- `DELETE /users/:id`
-- `GET /supabase/health`
+## Security (RLS)
 
-## Factory pattern used here
+Security is handled directly in the database using Supabase **Row Level Security**. Policies are defined for different roles:
+- `admin`: Full access.
+- `organisateur`: Management access (no audit logs).
+- `jury`: Score entry and planning access.
+- `enseignant`: School-specific team management.
+- `eleve`: Personal team and score views.
 
-`UserRepositoryFactory` chooses the repository implementation with:
-- `USER_REPOSITORY_DRIVER=prisma`
-- `USER_REPOSITORY_DRIVER=memory`
+## CI/CD
 
-That lets you keep the application layer independent from infrastructure.
-
-## Notes about Supabase
-
-Supabase gives you:
-- PostgreSQL database
-- Auth / storage / edge functions if you need them later
-
-In this starter:
-- Prisma talks to the Supabase Postgres database through `DATABASE_URL`
-- Supabase SDK is available through `SupabaseService`
-
-## Prisma
-
-Generate the Prisma client after installing dependencies:
-
-```bash
-npm run prisma:generate
-```
-
-Create and apply a migration locally:
-
-```bash
-npm run migration:generate -- --name init
-```
-
-Apply existing migrations in production:
-
-```bash
-npm run migration:run
-```
-
-## Production note
-
-Never expose the Supabase service role key in the frontend.
-This project is backend-only, so it is the right place to use it.
+Automated pipelines are configured via GitHub Actions (`.github/workflows/ci-cd.yml`) for:
+- Building and testing the API and Web applications.
+- Building and pushing Docker images to GHCR.
