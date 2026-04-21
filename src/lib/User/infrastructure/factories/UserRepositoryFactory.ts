@@ -1,7 +1,7 @@
 import { Provider } from '@nestjs/common';
 import { UserRepository } from '../../domain/UserRepository';
 import { InMemoryUserRepository } from '../InMemoryUserRepository';
-import { PrismaService } from '../../../../common/prisma/prisma.service';
+import { PrismaService } from '../../../../db/prisma.service';
 import { PrismaUserRepository } from '../Prisma/PrismaUserRepository';
 
 export const USER_REPOSITORY = 'UserRepository';

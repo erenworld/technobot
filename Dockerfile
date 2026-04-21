@@ -10,7 +10,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package*.json ./
-COPY prisma ./prisma
+COPY src/db ./src/db
 RUN npm ci --omit=dev --legacy-peer-deps
 RUN npm run prisma:generate
 COPY --from=base /app/dist ./dist
