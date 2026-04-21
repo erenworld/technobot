@@ -10,10 +10,3 @@ export type User = {
   email: string;
   createdAt: string;
 };
-
-export type AuthState = {
-  email: string;
-  password: string;
-  error: string | null;
-  loading: boolean;
-};

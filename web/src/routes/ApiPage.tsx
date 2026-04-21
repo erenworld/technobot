@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Session } from '@supabase/supabase-js';
 import { isSupabaseRealtimeConfigured, supabase } from '../lib/supabase';
 import { ApiState, User } from '../types';
 import { API_URL } from '../config';
@@ -16,7 +14,6 @@ async function fetchJson<T>(path: string): Promise<T> {
 }
 
 export function ApiPage() {
-  const [session, setSession] = useState<Session | null>(null);
   const [health, setHealth] = useState<ApiState<unknown>>({
     data: null,
     error: null,
@@ -27,24 +24,6 @@ export function ApiPage() {
     error: null,
     loading: true,
   });
-
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-    });
-
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-    });
-
-    return () => {
-      data.subscription.unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     fetchJson('/api/health')
@@ -59,15 +38,6 @@ export function ApiPage() {
         setUsers({ data: null, error: error.message, loading: false }),
       );
   }, []);
-
-  async function handleLogout() {
-    if (!supabase) {
-      return;
-    }
-
-    await supabase.auth.signOut();
-    setSession(null);
-  }
 
   useEffect(() => {
     const client = supabase;
@@ -132,22 +102,6 @@ export function ApiPage() {
     <main>
       <h1>Technobot API</h1>
       <p>API URL: {API_URL}</p>
-
-      <section>
-        <h2>Authentification</h2>
-        {session ? (
-          <>
-            <p>Connecte: {session.user.email}</p>
-            <button type="button" onClick={handleLogout}>
-              Se deconnecter
-            </button>
-          </>
-        ) : (
-          <p>
-            <Link to="/login">Se connecter</Link>
-          </p>
-        )}
-      </section>
 
       <section>
         <h2>Health</h2>

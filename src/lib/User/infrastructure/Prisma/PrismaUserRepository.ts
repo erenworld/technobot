@@ -5,7 +5,7 @@ import { UserId } from '../../domain/UserId';
 import { UserName } from '../../domain/UserName';
 import { UserEmail } from '../../domain/UserEmail';
 import { UserCreatedAt } from '../../domain/UserCreatedAt';
-import { PrismaService } from '../../../../db/prisma.service';
+import { PrismaService } from '../../../../common/prisma/prisma.service';
 
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}

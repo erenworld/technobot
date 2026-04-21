@@ -27,8 +27,8 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 # Prisma
-src/db/dev.db
-src/db/dev.db-journal
+prisma/dev.db
+prisma/dev.db-journal
 
 # OS / editors
 .DS_Store
