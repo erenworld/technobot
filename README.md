@@ -1,3 +1,7 @@
-Stack:
+### Technobot
 
-React -> Tailwind -> Supabase -> TypeORM -> NestJS
+- React
+- Tailwind
+- Supabase
+- TypeORM
+- NestJS
