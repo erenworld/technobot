@@ -1,4 +1,5 @@
-# Technobot - NestJS + Supabase (Native SDK)
+
+![technobot](.github/assets/tech.png)
 
 Full-stack robotics tournament management system built with NestJS, Hexagonal Architecture, and the Supabase native SDK.
 
