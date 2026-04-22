@@ -1567,7 +1567,6 @@
 
     *, *::before, *::after { box-sizing: border-box; }
   & {
-  & {
       font-family: var(--ff-body);
       color: var(--ink);
       background: var(--bg);
