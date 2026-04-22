@@ -1,6 +1,11 @@
 {
-  "installCommand": "npm install --prefix maquette",
-  "buildCommand": "npm run build --prefix maquette",
-  "outputDirectory": "maquette/dist",
-  "framework": null
+  "builds": [
+    {
+      "src": "maquette/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ]
 }
