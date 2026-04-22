@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Règlement - TECHNOBOT 2026</title>
+  <meta name="description"
+    content="Règlement complet TECHNOBOT 2026 : règles générales, épreuves collèges, épreuves lycées, barèmes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="global.css">
+</head>
+
+<body>
+
+  <!-- ============ NAV ============ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-dot"></span>
+        <span>TECHNOBOT</span>
+        <span class="brand-tag">/ 2026</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Accueil</a>
+        <a href="reglement.html" class="active">Règlement</a>
+        <a href="scoreboard.html">Scoreboard</a>
+        <a href="inscription.html" class="nav-cta">S'inscrire</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HEADER ============ -->
+  <header class="page-head">
+    <div class="crumbs">
+      <a href="index.html">TECHNOBOT</a>
+      <span class="sep">/</span>
+      <span>Règlement officiel</span>
+    </div>
+    <h1>Le <em>règlement</em>,<br>en clair.</h1>
+    <p>
+      Règles générales, caractéristiques techniques des robots, épreuves et barèmes. Version
+      2026 - reprise du règlement 2025 avec mises à jour du comité de pilotage.
+    </p>
+    <div class="page-meta">
+      <span><strong>Version</strong> 09.12.2023 / MAJ 2026</span>
+      <span><strong>Organisateur</strong> Tech Tic &amp; Co</span>
+      <span><strong>Finale</strong> 05.06.2026 · Yutz</span>
+    </div>
+  </header>
+
+  <!-- ============ CONTENT ============ -->
+  <div class="rules-layout">
+
+    <!-- TOC -->
+    <aside class="toc">
+      <div class="toc-tabs" role="tablist">
+        <button class="active" data-tab="collège">Collèges</button>
+        <button data-tab="lycée">Lycées</button>
+      </div>
+
+      <!-- Collège TOC -->
+      <div class="toc-panel active" data-panel="collège">
+        <div class="toc-label">// Règlement général</div>
+        <ul>
+          <li><a href="#c-intro">Présentation</a></li>
+          <li><a href="#c-robot">Caractéristiques robot</a></li>
+          <li><a href="#c-inscriptions">Inscriptions</a></li>
+          <li><a href="#c-prog">Programmation</a></li>
+          <li><a href="#c-classement">Classement</a></li>
+          <li><a href="#c-ct">Contrôle technique</a></li>
+        </ul>
+        <div class="toc-label">// Épreuves</div>
+        <ul>
+          <li><a href="#c-ligne">Suivi de ligne</a></li>
+          <li><a href="#c-formule">Formule robot</a></li>
+          <li><a href="#c-design">Design</a></li>
+          <li><a href="#c-presentation">Présentation de projet</a></li>
+        </ul>
+      </div>
+
+      <!-- Lycée TOC -->
+      <div class="toc-panel" data-panel="lycée">
+        <div class="toc-label">// Règlement général</div>
+        <ul>
+          <li><a href="#l-intro">Public concerné</a></li>
+          <li><a href="#l-dohyo">Caractéristiques du Dohyo</a></li>
+          <li><a href="#l-robot">Caractéristiques robot</a></li>
+          <li><a href="#l-classement">Classement général</a></li>
+        </ul>
+        <div class="toc-label">// Épreuves</div>
+        <ul>
+          <li><a href="#l-combat">Déroulement des combats</a></li>
+          <li><a href="#l-points">Points Yuko &amp; Yusei</a></li>
+          <li><a href="#l-penalites">Violations &amp; pénalités</a></li>
+          <li><a href="#l-lv">Présentation en LV</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Rules content -->
+    <main class="rules-content">
+
+      <!-- ============ COLLÈGE PANEL ============ -->
+      <div class="rules-panel active" data-panel="collège">
+        <div class="section-head-lg">
+          <div>
+            <div class="section-eyebrow">// Règlement · Collèges</div>
+            <h2
+              style="font-family: var(--ff-display); font-size: 44px; margin: 12px 0 0; font-weight:700; letter-spacing: -0.025em;">
+              Épreuves collèges 2026</h2>
+          </div>
+          <div style="font-family: var(--ff-mono); font-size: 12px; color: var(--muted);">12 pages · 8 articles</div>
+        </div>
+
+        <article class="rule" id="c-intro">
+          <div class="rule-num">ART. 0</div>
+          <h2>Présentation générale</h2>
+          <p>Le tournoi <strong>TECHNOBOT</strong> est ouvert aux collèges et lycées qui feront parvenir une fiche
+            d'inscription auprès d'<strong>Arnaud Roesslinger</strong>. Des qualifications pourront être organisées sur
+            tout le territoire de l'Académie en fonction des inscriptions et des établissements organisateurs.</p>
+          <p>La finale se déroule le <strong>vendredi 5 juin 2026</strong> au gymnase Mermoz de Yutz.</p>
+        </article>
+
+        <article class="rule" id="c-robot">
+          <div class="rule-num">ART. 1</div>
+          <h2>Caractéristiques des robots</h2>
+          <table class="spec-table">
+            <tr>
+              <th>Critère</th>
+              <th>Limite</th>
+            </tr>
+            <tr>
+              <td>Dimensions max (L × l × h)</td>
+              <td><strong>27 × 34 × 34 cm</strong></td>
+            </tr>
+            <tr>
+              <td>Masse</td>
+              <td><strong>&lt; 1,5 kg</strong></td>
+            </tr>
+            <tr>
+              <td>Coût max (hors dérogation)</td>
+              <td><strong>100,00 € HT</strong></td>
+            </tr>
+            <tr>
+              <td>Équipe par robot</td>
+              <td><strong>5 élèves max</strong></td>
+            </tr>
+            <tr>
+              <td>Robots par établissement</td>
+              <td><strong>1 par épreuve</strong></td>
+            </tr>
+          </table>
+          <h3>Contraintes obligatoires</h3>
+          <ul>
+            <li>Le robot doit être <strong>entièrement réalisé par les élèves</strong>, à l'exception d'une éventuelle
+              carte électronique.</li>
+            <li>Il doit disposer d'un <strong>interrupteur marche/arrêt facile d'accès</strong>.</li>
+            <li>Il doit être <strong>autonome</strong> - aucune liaison électrique, radioélectrique, mécanique ni
+              manuelle.</li>
+            <li>Il doit rester <strong>en contact avec le sol</strong> pendant l'épreuve.</li>
+            <li>La <strong>carrosserie est obligatoire</strong> et doit être une création originale (pas de commerce).
+            </li>
+          </ul>
+          <h3>Interdits absolus</h3>
+          <ul class="tight">
+            <li>Dispositifs à allumage, moteurs thermiques ou chimiques</li>
+            <li>Propulsion animale, dispositifs de lancement</li>
+            <li>Dépôt ou fixation de quoi que ce soit sur la piste</li>
+            <li>Intervention d'un professeur pendant les épreuves</li>
+          </ul>
+          <div class="callout">
+            <div class="callout-label">→ Justificatif coût</div>
+            Un justificatif du coût du robot pourra être demandé lors du contrôle technique. Les élèves doivent pouvoir
+            justifier les <strong>choix de composants</strong> et le <strong>fonctionnement</strong>.
+          </div>
+        </article>
+
+        <article class="rule" id="c-inscriptions">
+          <div class="rule-num">ART. 2</div>
+          <h2>Inscriptions &amp; nombre d'équipes</h2>
+          <p>Date limite : <strong>12 décembre 2025</strong>. Pour la finale au collège de Yutz, une participation
+            financière de <strong>50 €</strong> est à régler à l'association TechTic&amp;Co. Cette participation couvre
+            une partie des frais d'organisation.</p>
+          <div class="callout new">
+            <div class="callout-label">→ NOUVEAU 2026</div>
+            Un seul robot par équipe, et pour une seule épreuve. Les établissements organisent eux-mêmes leurs
+            qualifications internes en amont si besoin.
+          </div>
+        </article>
+
+        <article class="rule" id="c-prog">
+          <div class="rule-num">ART. 3</div>
+          <h2>Programmation</h2>
+          <p>La programmation doit être <strong>réalisée exclusivement par les élèves</strong>. Les élèves peuvent être
+            amenés à donner des explications sur leur programme, voire à le reprogrammer.</p>
+          <p>Au vu du nouveau programme de technologie en collège, la <strong>variation de vitesse</strong> et
+            l'<strong>utilisation de variables</strong> sont autorisées.</p>
+          <div class="callout warn">
+            <div class="callout-label">→ Parc fermé</div>
+            Les finalistes des épreuves <strong>Suivi de ligne</strong> et <strong>Formule robot</strong> devront
+            reprogrammer leur robot <strong>sur site, en parc fermé</strong> (2 élèves max, rotation possible).
+          </div>
+        </article>
+
+        <article class="rule" id="c-classement">
+          <div class="rule-num">ART. 6</div>
+          <h2>Classement général &amp; récompenses</h2>
+          <p>Chaque épreuve fait l'objet d'un classement. Les <strong>3 premières équipes</strong> de chaque épreuve
+            sont récompensées. Les <strong>3 premiers établissements</strong> gagnent un trophée TECHNOBOT qu'ils
+            remettront en jeu l'année suivante.</p>
+          <div class="ranking-grid">
+            <div class="ranking-cell top1">
+              <div class="rank">1ER</div>
+              <div class="pts">275</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">2E</div>
+              <div class="pts">198</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">3E</div>
+              <div class="pts">165</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">4E</div>
+              <div class="pts">132</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">5E</div>
+              <div class="pts">110</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">6E</div>
+              <div class="pts">88</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">7E</div>
+              <div class="pts">66</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">8E</div>
+              <div class="pts">44</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">9E</div>
+              <div class="pts">22</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">10E</div>
+              <div class="pts">11</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color: var(--muted);">Du 11e au 20e rang, un point chacun de 10 → 1 pt.</p>
+        </article>
+
+        <article class="rule" id="c-ct">
+          <div class="rule-num">ART. 7</div>
+          <h2>Contrôle technique</h2>
+          <p>Un contrôle technique sera organisé <strong>avant le début des épreuves</strong>. La conformité des robots
+            sera vérifiée. Les élèves devront être capables de justifier le coût de leur robot et les solutions
+            techniques choisies.</p>
+          <div class="callout warn">
+            <div class="callout-label">→ Inopiné</div>
+            Des opérations de contrôles techniques pourront avoir lieu de manière <strong>inopinée</strong> pendant le
+            tournoi.
+          </div>
+        </article>
+
+        <article class="rule" id="c-ligne">
+          <div class="rule-num">ÉPREUVE B</div>
+          <h2>Suivi de ligne</h2>
+          <p>Un robot suiveur de ligne doit parcourir plusieurs tracés de complexité croissante. Les points sont
+            attribués en fonction de la distance parcourue et du temps mis pour chaque parcours.</p>
+          <h3>Caractéristiques d'un parcours</h3>
+          <ul class="tight">
+            <li>Virage large · Virage serré · Angle droit</li>
+            <li>Angle obtus (&gt;90°) · Angle aigu (&lt;90°)</li>
+            <li>Croisement · Disparition du tracé (quelques cm)</li>
+          </ul>
+          <p>Longueur approximative des tracés : <strong>9 mètres maximum</strong>. Pistes en bâche imprimée, lignes
+            noires sur fond blanc. Une seule tentative est autorisée.</p>
+          <h3>Barème</h3>
+          <table class="spec-table">
+            <tr>
+              <th>Item</th>
+              <th>Points</th>
+            </tr>
+            <tr>
+              <td>Pourcentage de la distance parcourue</td>
+              <td><strong>/ 100</strong></td>
+            </tr>
+            <tr>
+              <td>Bonus parcours fini sans interruption</td>
+              <td><strong>+ 50</strong></td>
+            </tr>
+            <tr>
+              <td>Calcul de vitesse</td>
+              <td><strong>500 / temps</strong></td>
+            </tr>
+            <tr>
+              <td>6 pistes bonus (angles, intersection, interruptions)</td>
+              <td><strong>+ 5 chacune</strong></td>
+            </tr>
+          </table>
+          <div class="callout new">
+            <div class="callout-label">→ NOUVEAU</div>
+            Le robot doit avoir <strong>au moins une roue entièrement opaque</strong> pour permettre au système de
+            chronométrage de fonctionner correctement.
+          </div>
+        </article>
+
+        <article class="rule" id="c-formule">
+          <div class="rule-num">ÉPREUVE C</div>
+          <h2>Formule robot</h2>
+          <p>Course de vitesse entre deux robots autonomes sur une piste fermée. Une marque à l'avant et à l'arrière du
+            robot matérialise le milieu de la largeur hors tout. <strong>Un seul passage autorisé à la finale.</strong>
+          </p>
+          <h3>Piste</h3>
+          <ul class="tight">
+            <li>Forme d'un ovale, rayon &gt; 40 cm</li>
+            <li>Une seule voie de <strong>27 cm (±5)</strong> de largeur</li>
+            <li>Lignes noires, limites extérieures en rouge (±20 cm)</li>
+          </ul>
+          <h3>Déroulement</h3>
+          <ul>
+            <li>Les deux robots sont positionnés à l'opposé sur la piste, perpendiculairement à la ligne de départ.</li>
+            <li>Ils avancent dans le <strong>sens trigonométrique</strong>.</li>
+            <li>Le gagnant effectue <strong>3 tours</strong> le plus rapidement possible.</li>
+            <li>Un robot peut être déclaré vainqueur s'il rattrape son adversaire en moins de 3 tours.</li>
+            <li>Après 3 minutes sans résultat, les juges décident en tenant compte des distances.</li>
+          </ul>
+          <div class="callout warn">
+            <div class="callout-label">→ Lignes rouges</div>
+            Si un robot atteint les limites de la piste (lignes rouges), il <strong>perd la course</strong>. Mais il
+            n'est pas éliminé de la rencontre.
+          </div>
+        </article>
+
+        <article class="rule" id="c-design">
+          <div class="rule-num">ÉPREUVE D</div>
+          <h2>Design</h2>
+          <p>L'épreuve se déroule en <strong>3 phases</strong> : contrôle technique, classement, puis présentation au
+            public pour les 3 premiers. Des professionnels en design ou en arts plastiques notent le robot à l'aide du
+            barème.</p>
+          <table class="spec-table">
+            <tr>
+              <th>Catégorie</th>
+              <th>Points</th>
+            </tr>
+            <tr>
+              <td><span class="cat">Caractéristiques fonctionnelles</span><br><small>Interrupteur, refroidissement,
+                  câble prog, piles, solidité</small></td>
+              <td><strong>/ 25</strong></td>
+            </tr>
+            <tr>
+              <td><span class="cat">Caractéristiques formelles</span><br><small>Homogénéité, œuvre originale, qualité
+                  visuelle, dissimulation</small></td>
+              <td><strong>/ 60</strong></td>
+            </tr>
+            <tr>
+              <td><span class="cat">Présentation, démarche</span><br><small>Affiche A3, qualité de l'échange (3 min
+                  max)</small></td>
+              <td><strong>/ 35</strong></td>
+            </tr>
+            <tr class="total">
+              <td>TOTAL</td>
+              <td>/ 120</td>
+            </tr>
+          </table>
+          <p style="margin-top: 20px;"><strong>Bonus 1 ·</strong> Suivi de piste ovale (R 53,5 cm) : <strong>+10
+              pts</strong>. Attention, si le robot ne se déplace pas, il est éliminé.</p>
+          <div class="callout new">
+            <div class="callout-label">→ NOUVEAU</div>
+            <strong>Bonus 2 ·</strong> Robot connecté avec interaction avec le jury : jusqu'à <strong>+10 pts</strong>.
+            Le design de l'application est pris en compte. Les concurrents ne peuvent pas changer de programme pour la
+            démonstration.
+          </div>
+        </article>
+
+        <article class="rule" id="c-presentation">
+          <div class="rule-num">ÉPREUVE E</div>
+          <h2>Présentation de projet</h2>
+          <p>Les élèves présentent en <strong>3 minutes</strong> leur projet. Un support multimédia est possible
+            (diaporama, vidéos) sur clé USB. Au bout des 3 minutes, la présentation sera <strong>coupée</strong>.</p>
+          <table class="spec-table">
+            <tr>
+              <th>Critère</th>
+              <th>Points</th>
+            </tr>
+            <tr>
+              <td><span class="cat">Aisance</span><br><small>Attitude, travail de groupe, durée, originalité</small>
+              </td>
+              <td><strong>/ 20</strong></td>
+            </tr>
+            <tr>
+              <td><span class="cat">Langue(s)</span><br><small>Prise de risque, qualité linguistique</small></td>
+              <td><strong>/ 20</strong></td>
+            </tr>
+            <tr>
+              <td><span class="cat">Contenu</span><br><small>Cohérence démarche, justification choix techniques</small>
+              </td>
+              <td><strong>/ 30</strong></td>
+            </tr>
+            <tr>
+              <td><span class="cat">Outils</span><br><small>Schémas, tableaux, bête à cornes, SysML</small></td>
+              <td><strong>/ 20</strong></td>
+            </tr>
+            <tr class="total">
+              <td>TOTAL</td>
+              <td>/ 90</td>
+            </tr>
+          </table>
+          <p style="margin-top: 20px; font-size: 14px; color: var(--muted);">Bonus suivi piste ovale : +10 pts · Bonus
+            robot connecté : +10 pts max.</p>
+        </article>
+      </div>
+
+      <!-- ============ LYCÉE PANEL ============ -->
+      <div class="rules-panel" data-panel="lycée">
+        <div class="section-head-lg">
+          <div>
+            <div class="section-eyebrow">// Règlement · Lycées</div>
+            <h2
+              style="font-family: var(--ff-display); font-size: 44px; margin: 12px 0 0; font-weight:700; letter-spacing: -0.025em;">
+              Sumo lycées 2026</h2>
+          </div>
+          <div style="font-family: var(--ff-mono); font-size: 12px; color: var(--muted);">Adapté de l'IUT GEII Nîmes
+          </div>
+        </div>
+
+        <article class="rule" id="l-intro">
+          <div class="rule-num">CHAP. 0</div>
+          <h2>Public concerné</h2>
+          <p>Le règlement 2026 reprend l'édition 2025. Les règles suivies correspondent à celles des concours de robots
+            Mini-Sumo en vigueur au <strong>Japon</strong> et aux <strong>États-Unis</strong>, avec quelques
+            modifications. <strong>Seuls les robots autonomes</strong> sont acceptés.</p>
+          <div class="callout">
+            <div class="callout-label">→ Limites</div>
+            Les élèves sont les <strong>seuls acteurs</strong> de l'étude, la conception, la réalisation, la mise au
+            point et la programmation. Les professeurs signent la charte : l'utilisation de kits peut entraîner la
+            disqualification. Volume horaire élèves attendu : <strong>30 à 70h</strong>.
+          </div>
+          <h3>Deux épreuves complémentaires</h3>
+          <ul>
+            <li><strong>Concours sumos</strong> - combats sur Dohyo.</li>
+            <li><strong>Présentation en LV</strong> - projet en anglais devant jury.</li>
+          </ul>
+        </article>
+
+        <article class="rule" id="l-dohyo">
+          <div class="rule-num">CHAP. 2</div>
+          <h2>Caractéristiques du Dohyo</h2>
+          <table class="spec-table">
+            <tr>
+              <th>Élément</th>
+              <th>Valeur</th>
+            </tr>
+            <tr>
+              <td>Diamètre</td>
+              <td><strong>92 cm</strong></td>
+            </tr>
+            <tr>
+              <td>Épaisseur minimum</td>
+              <td><strong>22 mm</strong></td>
+            </tr>
+            <tr>
+              <td>Surface</td>
+              <td>Bois, lisse, peinte noir mat</td>
+            </tr>
+            <tr>
+              <td>Couronne extérieure</td>
+              <td><strong>4 cm blanc brillant</strong> (incluse)</td>
+            </tr>
+            <tr>
+              <td>Lignes de départ (Shikiri-sen)</td>
+              <td>16 × 1,9 cm, à 15 cm du centre</td>
+            </tr>
+            <tr>
+              <td>Zone autour du Dohyo</td>
+              <td>92 cm minimum</td>
+            </tr>
+          </table>
+          <p style="margin-top: 20px;">Chaque lycée apportera sa piste le jour du concours ; certaines pourront servir
+            aux qualifications par poule.</p>
+        </article>
+
+        <article class="rule" id="l-robot">
+          <div class="rule-num">CHAP. 3</div>
+          <h2>Caractéristiques des robots</h2>
+          <p><strong>Une seule catégorie</strong> est ouverte : dimensions initiales <strong>160 × 160 mm</strong>,
+            hauteur sans limite.</p>
+          <table class="spec-table">
+            <tr>
+              <th>Critère</th>
+              <th>Limite</th>
+            </tr>
+            <tr>
+              <td>Dimensions initiales</td>
+              <td><strong>160 × 160 mm</strong></td>
+            </tr>
+            <tr>
+              <td>Masse</td>
+              <td><strong>&lt; 750 g</strong> (tolérance 10 g)</td>
+            </tr>
+            <tr>
+              <td>Actionneurs max</td>
+              <td><strong>4</strong></td>
+            </tr>
+            <tr>
+              <td>Source d'énergie</td>
+              <td>Électrique uniquement</td>
+            </tr>
+            <tr>
+              <td>Délai de démarrage</td>
+              <td><strong>5 secondes</strong> après signal</td>
+            </tr>
+          </table>
+          <div class="callout warn">
+            <div class="callout-label">→ Exclusions 2026</div>
+            Les structures modulaires type <strong>LEGO®</strong>, <strong>Meccano®</strong> et dérivés ne sont plus
+            acceptées (depuis 2017). Seules les productions des élèves pourront concourir. Aucune version commerciale ne
+            sera validée au contrôle technique.
+          </div>
+          <h3>Interdits sur le robot</h3>
+          <ul class="tight">
+            <li>Systèmes qui bloquent sur place (aspirateurs, ventouses, colle)</li>
+            <li>Projection de liquide, poudre, feu</li>
+            <li>Lumière ou fumée gênant l'adversaire</li>
+            <li>Dégradation du Dohyo</li>
+          </ul>
+        </article>
+
+        <article class="rule" id="l-combat">
+          <div class="rule-num">CHAP. 4-5</div>
+          <h2>Déroulement des combats</h2>
+          <p>Un combat consiste en <strong>3 rencontres de 3 minutes</strong>. Le premier à remporter <strong>2 points
+              Yuko</strong> est déclaré vainqueur du combat.</p>
+          <h3>Configurations de départ (aléatoires)</h3>
+          <ul class="tight">
+            <li>Flanc droit contre flanc droit</li>
+            <li>Flanc gauche contre flanc gauche</li>
+            <li>Dos à dos</li>
+          </ul>
+          <div class="callout">
+            <div class="callout-label">→ Sécurité</div>
+            Depuis 2019, le port de <strong>gants et lunettes de protection</strong> est obligatoire pour les
+            participants. Avant la rencontre, les participants se saluent avant de poser leur robot.
+          </div>
+          <h3>Annulation &amp; rencontre rejouée</h3>
+          <ul>
+            <li>Robots bloqués ensemble ou tournant en cercle sans évolution.</li>
+            <li>Les deux robots touchent l'extérieur du Dohyo simultanément.</li>
+            <li>L'arbitre ne peut désigner de vainqueur pour d'autres raisons.</li>
+          </ul>
+        </article>
+
+        <article class="rule" id="l-points">
+          <div class="rule-num">CHAP. 6</div>
+          <h2>Points - Yuko &amp; Yusei</h2>
+          <h3>Yuko (point de décision)</h3>
+          <ul>
+            <li>Éjection de l'adversaire hors du Dohyo par une action légale.</li>
+            <li>L'adversaire sort du Dohyo de lui-même.</li>
+            <li>L'adversaire est disqualifié ou a plus d'une violation.</li>
+            <li>2 points Yusei accumulés.</li>
+            <li>1 Yusei + un avertissement adversaire.</li>
+          </ul>
+          <h3>Yusei (avantage)</h3>
+          <p>L'adversaire reste bloqué en bordure du Dohyo et ne peut se déplacer de lui-même.</p>
+        </article>
+
+        <article class="rule" id="l-penalites">
+          <div class="rule-num">CHAP. 7</div>
+          <h2>Violations &amp; pénalités</h2>
+          <h3>Avertissements</h3>
+          <ul class="tight">
+            <li>Participant entre sur le Dohyo avant la fin de la rencontre.</li>
+            <li>Préparation pour une nouvelle rencontre dure &gt; 30 s.</li>
+            <li>Robot autonome bouge avant les 5 s après signal départ.</li>
+          </ul>
+          <h3>Violations - Yuko adverse</h3>
+          <ul class="tight">
+            <li>Le robot "lâche" volontairement un élément sur la piste.</li>
+            <li>L'un des robots ne se déplace plus &gt; 5 s.</li>
+            <li>Les deux robots avancent sans jamais se rencontrer.</li>
+            <li>De la fumée s'échappe d'un robot.</li>
+          </ul>
+          <h3>Disqualification</h3>
+          <ul class="tight">
+            <li>Robot ne respectant pas les caractéristiques.</li>
+            <li>Comportement non sportif, langage calomnieux.</li>
+            <li>Blessure volontaire d'un adversaire.</li>
+          </ul>
+          <div class="callout warn">
+            <div class="callout-label">→ Contrôle technique inopiné</div>
+            Si un écart est constaté par rapport au contrôle technique initial (délai de démarrage, masse, dimensions),
+            le robot est <strong>disqualifié</strong>. Un contrôle technique complet du podium provisoire validera les
+            résultats.
+          </div>
+        </article>
+
+        <article class="rule" id="l-lv">
+          <div class="rule-num">ART. 23</div>
+          <h2>Présentation en langue vivante</h2>
+          <p>Chaque équipe (5 élèves max) présente le développement de son robot sumo à un jury de spécialistes en
+            utilisant un support numérique au choix. Depuis 2023, la présentation se déroule <strong>en
+              anglais</strong>.</p>
+          <p>Temps d'intervention : <strong>5 minutes</strong>. Une interrogation de <strong>3 minutes</strong> peut
+            suivre pour vérifier les savoirs.</p>
+          <div class="callout new">
+            <div class="callout-label">→ À préparer</div>
+            L'équipe propose un <strong>résumé écrit (pitch)</strong> de 5 lignes maximum à présenter au pôle
+            "inscription" à l'arrivée au gymnase.
+          </div>
+          <table class="spec-table">
+            <tr>
+              <th>Critère</th>
+              <th>Points</th>
+            </tr>
+            <tr>
+              <td>Répartition du temps de parole</td>
+              <td><strong>/ 20</strong></td>
+            </tr>
+            <tr>
+              <td>Qualité du visuel de présentation</td>
+              <td><strong>/ 30</strong></td>
+            </tr>
+            <tr>
+              <td>Justesse technique</td>
+              <td><strong>/ 15</strong></td>
+            </tr>
+            <tr>
+              <td>Compétences linguistiques collectives</td>
+              <td><strong>/ 20</strong></td>
+            </tr>
+            <tr>
+              <td>Vocabulaire technique adapté</td>
+              <td><strong>/ 15</strong></td>
+            </tr>
+            <tr>
+              <td>Dossier technique en LV (5-10 pages)</td>
+              <td><strong>/ 20</strong></td>
+            </tr>
+            <tr>
+              <td>Échanges techniques avec le jury</td>
+              <td><strong>/ 30</strong></td>
+            </tr>
+            <tr class="total">
+              <td>TOTAL</td>
+              <td>/ 150</td>
+            </tr>
+          </table>
+        </article>
+
+        <article class="rule" id="l-classement">
+          <div class="rule-num">ART. 24</div>
+          <h2>Classement général</h2>
+          <p>Le classement général est établi en additionnant la note de présentation de projet et les résultats obtenus
+            à l'épreuve "Rencontres".</p>
+          <div class="ranking-grid">
+            <div class="ranking-cell top1">
+              <div class="rank">1ER</div>
+              <div class="pts">150</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">2E</div>
+              <div class="pts">130</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">3E</div>
+              <div class="pts">115</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">4E</div>
+              <div class="pts">100</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">5E</div>
+              <div class="pts">90</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">6E</div>
+              <div class="pts">80</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">7E</div>
+              <div class="pts">70</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">8E</div>
+              <div class="pts">60</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">9E</div>
+              <div class="pts">50</div>
+            </div>
+            <div class="ranking-cell">
+              <div class="rank">10E</div>
+              <div class="pts">45</div>
+            </div>
+          </div>
+          <p style="font-size:14px; color: var(--muted);">Du 11e au 19e rang : 40, 35, 30, 30, 25, 20, 15, 10, 5 pts.
+            Au-delà : 0 pt.</p>
+        </article>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="b">TECHNO<span class="red">BOT</span> · 2026</div>
+      <div class="links">
+        <a href="index.html">Accueil</a>
+        <a href="reglement.html">Règlement</a>
+        <a href="inscription.html">Inscription</a>
+        <a href="scoreboard.html">Scoreboard</a>
+      </div>
+      <div class="meta">© 2026 Tech Tic &amp; Co · Marque déposée</div>
+    </div>
+  </footer>
+
+  <script>
+    // ============ TOC tabs + panel sync ============
+    const tocTabs = document.querySelectorAll('.toc-tabs button');
+    const tocPanels = document.querySelectorAll('.toc-panel');
+    const rulesPanels = document.querySelectorAll('.rules-panel');
+    tocTabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        tocTabs.forEach(b => b.classList.toggle('active', b === btn));
+        tocPanels.forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+        rulesPanels.forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+        // scroll up
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // ============ Current section highlight in TOC ============
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          document.querySelectorAll('.toc a').forEach(a => {
+            a.classList.toggle('current', a.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('article.rule').forEach(el => io.observe(el));
+  </script>
+
+</body>
+
+</html>
