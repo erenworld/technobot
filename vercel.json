@@ -1,5 +1,6 @@
 {
   "installCommand": "npm install --prefix maquette",
   "buildCommand": "npm run build --prefix maquette",
-  "outputDirectory": "maquette/dist"
+  "outputDirectory": "maquette/dist",
+  "framework": null
 }
