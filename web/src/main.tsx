@@ -1,23 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { ApiPage } from './routes/ApiPage';
-import { LoginPage } from './routes/LoginPage';
-import { NotFoundPage } from './routes/NotFoundPage';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { HomePage } from './routes/HomePage';
+import { InscriptionPage } from './routes/InscriptionPage';
+import { ReglementPage } from './routes/ReglementPage';
+import { ScoreboardPage } from './routes/ScoreboardPage';
+import './global.css';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <ApiPage />,
+    element: <HomePage />,
   },
   {
-    path: '/login',
-    element: <LoginPage />,
+    path: '/inscription',
+    element: <InscriptionPage />,
   },
   {
-    path: '*',
-    element: <NotFoundPage />,
+    path: '/reglement',
+    element: <ReglementPage />,
   },
+  {
+    path: '/scoreboard',
+    element: <ScoreboardPage />,
+  }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
