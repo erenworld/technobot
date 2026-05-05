@@ -13,7 +13,7 @@ export class UserEdit {
     name: string,
     email: string,
     createdAt: Date,
-  ): Promise<void> {
+  ): Promise<User> {
     const user = new User(
       new UserId(id),
       new UserName(name),
@@ -21,6 +21,7 @@ export class UserEdit {
       new UserCreatedAt(createdAt),
     );
 
-    return this.repository.edit(user);
+    await this.repository.edit(user);
+    return user;
   }
 }
