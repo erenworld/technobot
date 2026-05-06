@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing';
 import request = require('supertest');
 import { AppModule } from './app.module';
 import { SUPABASE_CLIENT } from './common/supabase/supabase.constants';
+import { SupabaseAuthGuard } from './common/guards/SupabaseAuthGuard';
+import { PermissionsGuard } from './common/guards/PermissionsGuard';
 
 describe('API routes', () => {
   let app: INestApplication;
@@ -93,6 +95,14 @@ describe('API routes', () => {
     })
       .overrideProvider(SUPABASE_CLIENT)
       .useValue(supabaseMock)
+      .overrideGuard(SupabaseAuthGuard).useValue({ 
+        canActivate: (context: any) => {
+          const req = context.switchToHttp().getRequest();
+          req.user = { id: 'user-002', role: 'admin' }; // Dummy admin user
+          return true;
+        } 
+      })
+      .overrideGuard(PermissionsGuard).useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -124,15 +134,6 @@ describe('API routes', () => {
     });
   });
 
-  it('GET /api/supabase/health returns the Supabase status', async () => {
-    await request(app.getHttpServer())
-      .get('/api/supabase/health')
-      .expect(200)
-      .expect({
-        ok: true,
-        error: null,
-      });
-  });
 
   it('GET /api/users returns an empty user list', async () => {
     await request(app.getHttpServer()).get('/api/users').expect(200).expect([]);

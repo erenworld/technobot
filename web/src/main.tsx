@@ -1,29 +1,30 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { HomePage } from './routes/HomePage';
-import { InscriptionPage } from './routes/InscriptionPage';
-import { ReglementPage } from './routes/ReglementPage';
-import { ScoreboardPage } from './routes/ScoreboardPage';
-import './global.css';
+import { ApiPage } from './routes/ApiPage';
+import { LoginPage } from './routes/LoginPage';
+import { NotFoundPage } from './routes/NotFoundPage';
 
+/**
+ * Initializes a browser-based router using the HTML5 History API.
+ *
+ * @param routes - An array of route objects defining the application navigation.
+ * This router enables client-side navigation without full page reloads.
+ * @returns A router instance to be provided to <RouterProvider />
+ */
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <HomePage />,
+    element: <ApiPage />,
   },
   {
-    path: '/inscription',
-    element: <InscriptionPage />,
+    path: '/login',
+    element: <LoginPage />,
   },
   {
-    path: '/reglement',
-    element: <ReglementPage />,
+    path: '*',
+    element: <NotFoundPage />,
   },
-  {
-    path: '/scoreboard',
-    element: <ScoreboardPage />,
-  }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
