@@ -1,34 +1,30 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ApiPage } from './routes/ApiPage';
+
+import { AuthProvider } from './lib/auth';
+import { HomePage } from './routes/HomePage';
+import { ReglementPage } from './routes/ReglementPage';
+import { InscriptionPage } from './routes/InscriptionPage';
+import { ScoreboardPage } from './routes/ScoreboardPage';
 import { LoginPage } from './routes/LoginPage';
 import { NotFoundPage } from './routes/NotFoundPage';
 
-/**
- * Initializes a browser-based router using the HTML5 History API.
- *
- * @param routes - An array of route objects defining the application navigation.
- * This router enables client-side navigation without full page reloads.
- * @returns A router instance to be provided to <RouterProvider />
- */
+import './styles/global.css';
+
 const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <ApiPage />,
-  },
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '*',
-    element: <NotFoundPage />,
-  },
+  { path: '/', element: <HomePage /> },
+  { path: '/reglement', element: <ReglementPage /> },
+  { path: '/inscription', element: <InscriptionPage /> },
+  { path: '/scoreboard', element: <ScoreboardPage /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '*', element: <NotFoundPage /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </React.StrictMode>,
 );
