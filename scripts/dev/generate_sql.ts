@@ -63,7 +63,7 @@ const prenomsEleves = ['Lucas', 'Emma', 'Hugo', 'Chloé', 'Arthur', 'Léa', 'Lou
 let prenomIdx = 0;
 for (const etab of etablissements) {
   for(let e=1; e<=2; e++) profiles.push({ id: getUuid('prof', profIdx++), auth_user_id: null, email: `enseignant${e}.${etab.id.substring(24)}@technobot.fr`, nom: 'Prof', prenom: `${etab.nom.substring(0,3)}${e}`, role: 'enseignant', etablissement_id: etab.id });
-  const nbEleves = etab.type === 'college' ? 3 : 5;
+  const nbEleves = etab.type === 'college' ? 20 : 25;
   for(let e=1; e<=nbEleves; e++) {
     const prenom = prenomsEleves[prenomIdx % prenomsEleves.length];
     prenomIdx++;
@@ -106,10 +106,12 @@ sql += generateInsert('teams', teams);
 
 const teamMembers = [];
 let tmIdx = 1;
+const assignedEleves = new Set<string>();
 for (const team of teams) {
-  const eleves = profiles.filter(p => p.role === 'eleve' && p.etablissement_id === team.etablissement_id);
+  const eleves = profiles.filter(p => p.role === 'eleve' && p.etablissement_id === team.etablissement_id && !assignedEleves.has(p.id));
   for (const el of eleves.slice(0, 5)) {
     teamMembers.push({ id: getUuid('tmem', tmIdx++), team_id: team.id, profile_id: el.id, role_dans_equipe: 'membre' });
+    assignedEleves.add(el.id);
   }
 }
 sql += generateInsert('team_members', teamMembers);
@@ -202,5 +204,5 @@ const notifications = [
 ];
 sql += generateInsert('notifications', notifications);
 
-fs.writeFileSync('c:\\dev\\Technobot\\scripts\\dev\\dump.sql', sql);
+fs.writeFileSync('/home/matheo/Tek2/ProjetPerso/Technobot/scripts/dev/dump.sql', sql);
 console.log('Done generating SQL!');
