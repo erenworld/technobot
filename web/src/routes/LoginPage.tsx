@@ -175,6 +175,28 @@ export function LoginPage() {
                 </button>
               </div>
             </form>
+
+            <div
+              style={{
+                marginTop: 28,
+                paddingTop: 24,
+                borderTop: '1px solid var(--line)',
+              }}
+            >
+              <div className="form-section-eyebrow" style={{ marginBottom: 12 }}>
+                // Staff
+              </div>
+              <Link
+                to="/admin"
+                className="btn btn-ghost"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Accéder à l'interface admin
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </main>
       </div>

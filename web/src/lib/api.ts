@@ -2,6 +2,7 @@ import { API_URL } from '../config';
 import { supabase } from './supabase';
 import {
   Classements,
+  ControleTechniquePayload,
   MatchSumo,
   PlanningSlot,
   Profile,
@@ -69,6 +70,19 @@ export const api = {
       return request<Team[]>(`/api/teams${qs ? `?${qs}` : ''}`);
     },
     get: (id: string) => request<Team>(`/api/teams/${id}`),
+    /** Met à jour statut + notes_technique via l'endpoint de contrôle technique. */
+    updateControleTechnique: (id: string, payload: ControleTechniquePayload) =>
+      request<Team>(`/api/teams/${id}/controle-technique`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    /**
+     * Supprime une équipe. ⚠ Le back n'expose pas encore `DELETE /api/teams/:id` —
+     * cet appel échouera côté API tant que la route n'est pas ajoutée. L'UI
+     * remontera l'erreur proprement (404 / 405).
+     */
+    delete: (id: string) =>
+      request<void>(`/api/teams/${id}`, { method: 'DELETE' }),
   },
 
   classements: {
@@ -97,5 +111,18 @@ export const api = {
   users: {
     list: () => request<Profile[]>('/api/users'),
     get: (id: string) => request<Profile>(`/api/users/${id}`),
+  },
+
+  scores: {
+    /**
+     * Crée une note pour une équipe.
+     * `endpoint` vaut design | presentation-colleges | presentation-lycees |
+     * suivi-ligne ; le `payload` doit respecter le DTO correspondant côté back.
+     */
+    create: (endpoint: string, payload: Record<string, unknown>) =>
+      request<{ id?: string }>(`/api/scores/${endpoint}`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
   },
 };

@@ -2,32 +2,98 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { FooterCompact } from '../components/Footer';
+import { supabase } from '../lib/supabase';
 
-type Epreuve = 'ligne' | 'formule' | 'design' | 'presentation' | 'sumo' | 'lv';
+/**
+ * Inscription d'un établissement à TECHNOBOT.
+ *
+ * Règle métier — **un robot = une épreuve = jusqu'à 5 élèves**.
+ *  - Collèges : suivi_ligne / formule_robot / design / presentation_projet
+ *    sont obligatoires. Le sumo est facultatif.
+ *  - Lycées : sumo + presentation_projet (en LV) sont obligatoires.
+ *
+ * Chaque robot porte donc sa propre composition d'équipe (la table `team_members`
+ * côté back lie `team_id` → `profile_id`). Le formulaire est encore mock-only
+ * mais sa structure reflète ce mapping pour le futur branchement.
+ */
 
-const EPREUVE_LABELS: Record<Epreuve, string> = {
-  ligne: 'Suivi de ligne · Collèges',
-  formule: 'Formule robot · Collèges',
-  design: 'Design · Collèges',
-  presentation: 'Présentation projet · Collèges',
-  sumo: 'Sumo autonome · Lycées',
-  lv: 'Présentation LV · Lycées',
+type EpreuveKey =
+  | 'suivi_ligne'
+  | 'formule_robot'
+  | 'design'
+  | 'presentation_projet'
+  | 'sumo';
+
+type Categorie = 'college' | 'lycee';
+
+type EpreuveDef = { num: string; title: string; desc: string };
+
+const EPREUVE_DEFS: Record<EpreuveKey, EpreuveDef> = {
+  suivi_ligne: {
+    num: '01',
+    title: 'Suivi de ligne',
+    desc: 'Tracé complexe, chrono, 6 pistes bonus.',
+  },
+  formule_robot: {
+    num: '02',
+    title: 'Formule robot',
+    desc: 'Course ovale à deux, 3 tours.',
+  },
+  design: {
+    num: '03',
+    title: 'Design',
+    desc: 'Ergonomie, originalité, affiche.',
+  },
+  presentation_projet: {
+    num: '04',
+    title: 'Présentation de projet',
+    desc: '3 min chrono, schémas SysML.',
+  },
+  sumo: {
+    num: '05',
+    title: 'Sumo autonome',
+    desc: 'Dohyo Ø 92 cm, 750 g max.',
+  },
 };
 
-const EPREUVE_OPTIONS: { value: Epreuve; num: string; title: string; desc: string }[] = [
-  { value: 'ligne', num: '01 · Collèges', title: 'Suivi de ligne', desc: 'Tracé complexe, chrono, 6 bonus' },
-  { value: 'formule', num: '02 · Collèges', title: 'Formule robot', desc: 'Course ovale à deux, 3 tours' },
-  { value: 'design', num: '03 · Collèges', title: 'Design', desc: 'Ergonomie, originalité, affiche' },
-  { value: 'presentation', num: '04 · Collèges', title: 'Présentation de projet', desc: '3 min chrono, schémas SysML' },
-  { value: 'sumo', num: '05 · Lycées', title: 'Sumo autonome', desc: 'Dohyo 92 cm, 750 g max' },
-  { value: 'lv', num: '06 · Lycées', title: 'Présentation en anglais', desc: '5 min + dossier en LV' },
-];
+function defFor(key: EpreuveKey, categorie: Categorie): EpreuveDef {
+  if (key === 'presentation_projet' && categorie === 'lycee') {
+    return {
+      num: '04',
+      title: 'Présentation en LV',
+      desc: '5 min en anglais + dossier technique.',
+    };
+  }
+  return EPREUVE_DEFS[key];
+}
+
+function categorieOf(etabType: string): Categorie {
+  return etabType.startsWith('Collège') ? 'college' : 'lycee';
+}
+
+function epreuvesForType(
+  etabType: string,
+): Array<{ key: EpreuveKey; mandatory: boolean }> {
+  if (categorieOf(etabType) === 'college') {
+    return [
+      { key: 'suivi_ligne', mandatory: true },
+      { key: 'formule_robot', mandatory: true },
+      { key: 'design', mandatory: true },
+      { key: 'presentation_projet', mandatory: true },
+      { key: 'sumo', mandatory: false },
+    ];
+  }
+  return [
+    { key: 'sumo', mandatory: true },
+    { key: 'presentation_projet', mandatory: true },
+  ];
+}
 
 const STEPS = [
   { num: '01', name: 'Établissement', desc: 'Identité du collège ou lycée' },
   { num: '02', name: 'Responsable', desc: 'Enseignant-référent' },
-  { num: '03', name: 'Épreuve & robot', desc: "Choix d'épreuve et détails" },
-  { num: '04', name: 'Équipe & validation', desc: 'Élèves et charte' },
+  { num: '03', name: 'Robots & équipes', desc: '1 robot = 1 épreuve = 5 élèves max' },
+  { num: '04', name: 'Charte & envoi', desc: 'Validation finale' },
 ];
 
 type FormState = {
@@ -35,9 +101,6 @@ type FormState = {
   etabType: string;
   etabVille: string;
   etabCp: string;
-  etabAdresse: string;
-  etabUai: string;
-  etabAcademie: string;
   respNom: string;
   respPrenom: string;
   respDisc: string;
@@ -45,12 +108,6 @@ type FormState = {
   respMail: string;
   coNom: string;
   coMail: string;
-  epreuve: Epreuve;
-  robotNom: string;
-  robotSponsor: string;
-  robotCout: string;
-  robotCarte: string;
-  robotDescr: string;
   charte1: boolean;
   charte2: boolean;
   charte3: boolean;
@@ -62,9 +119,6 @@ const INITIAL_FORM: FormState = {
   etabType: 'Collège',
   etabVille: '',
   etabCp: '',
-  etabAdresse: '',
-  etabUai: '',
-  etabAcademie: 'Nancy-Metz',
   respNom: '',
   respPrenom: '',
   respDisc: 'Technologie',
@@ -72,12 +126,6 @@ const INITIAL_FORM: FormState = {
   respMail: '',
   coNom: '',
   coMail: '',
-  epreuve: 'ligne',
-  robotNom: '',
-  robotSponsor: '',
-  robotCout: '',
-  robotCarte: 'Arduino UNO',
-  robotDescr: '',
   charte1: false,
   charte2: false,
   charte3: false,
@@ -85,6 +133,38 @@ const INITIAL_FORM: FormState = {
 };
 
 type Student = { id: number; nom: string; prenom: string };
+
+type RobotInfo = {
+  nom: string;
+  cout: string;
+  descr: string;
+  /** 1 à 5 élèves par robot (table `team_members` côté back). */
+  students: Student[];
+};
+
+let studentIdSeq = 1000;
+const newStudent = (): Student => ({
+  id: ++studentIdSeq,
+  nom: '',
+  prenom: '',
+});
+
+const emptyRobot = (): RobotInfo => ({
+  nom: '',
+  cout: '',
+  descr: '',
+  students: [newStudent(), newStudent(), newStudent()],
+});
+
+type Robots = Partial<Record<EpreuveKey, RobotInfo>>;
+
+function initialRobots(etabType: string): Robots {
+  const robots: Robots = {};
+  for (const { key, mandatory } of epreuvesForType(etabType)) {
+    if (mandatory) robots[key] = emptyRobot();
+  }
+  return robots;
+}
 
 function scrollToForm() {
   const el = document.querySelector('.form-main');
@@ -96,15 +176,37 @@ function scrollToForm() {
 export function InscriptionPage() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const [students, setStudents] = useState<Student[]>([
-    { id: 1, nom: '', prenom: '' },
-    { id: 2, nom: '', prenom: '' },
-    { id: 3, nom: '', prenom: '' },
-  ]);
+  const [robots, setRobots] = useState<Robots>(() =>
+    initialRobots(INITIAL_FORM.etabType),
+  );
   const [submitted, setSubmitted] = useState(false);
   const [refId, setRefId] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [createdTeams, setCreatedTeams] = useState<
+    Array<{ immatriculation: string; epreuve: string }>
+  >([]);
 
   const totalSteps = 4;
+  const categorie = categorieOf(form.etabType);
+  const epreuvesList = useMemo(
+    () => epreuvesForType(form.etabType),
+    [form.etabType],
+  );
+
+  // Quand le type d'établissement change, on garde les robots saisis qui sont
+  // toujours applicables et on initialise des slots vides pour les nouvelles
+  // épreuves obligatoires.
+  useEffect(() => {
+    setRobots((cur) => {
+      const next: Robots = {};
+      for (const { key, mandatory } of epreuvesList) {
+        if (mandatory) next[key] = cur[key] ?? emptyRobot();
+        else if (cur[key]) next[key] = cur[key];
+      }
+      return next;
+    });
+  }, [epreuvesList]);
 
   useEffect(() => {
     if (step === 1 && !submitted) return;
@@ -115,50 +217,210 @@ export function InscriptionPage() {
     setForm((cur) => ({ ...cur, [key]: value }));
   };
 
+  const toggleEpreuve = (key: EpreuveKey, on: boolean) => {
+    setRobots((cur) => {
+      const next = { ...cur };
+      if (on) next[key] = next[key] ?? emptyRobot();
+      else delete next[key];
+      return next;
+    });
+  };
+
+  const updateRobot = (
+    key: EpreuveKey,
+    field: Exclude<keyof RobotInfo, 'students'>,
+    value: string,
+  ) => {
+    setRobots((cur) => {
+      const r = cur[key];
+      if (!r) return cur;
+      return { ...cur, [key]: { ...r, [field]: value } };
+    });
+  };
+
+  const updateStudent = (
+    key: EpreuveKey,
+    sid: number,
+    field: 'nom' | 'prenom',
+    value: string,
+  ) => {
+    setRobots((cur) => {
+      const r = cur[key];
+      if (!r) return cur;
+      return {
+        ...cur,
+        [key]: {
+          ...r,
+          students: r.students.map((s) =>
+            s.id === sid ? { ...s, [field]: value } : s,
+          ),
+        },
+      };
+    });
+  };
+
+  const addStudent = (key: EpreuveKey) => {
+    setRobots((cur) => {
+      const r = cur[key];
+      if (!r || r.students.length >= 5) return cur;
+      return { ...cur, [key]: { ...r, students: [...r.students, newStudent()] } };
+    });
+  };
+
+  const removeStudent = (key: EpreuveKey, sid: number) => {
+    setRobots((cur) => {
+      const r = cur[key];
+      if (!r || r.students.length <= 1) return cur;
+      return {
+        ...cur,
+        [key]: { ...r, students: r.students.filter((s) => s.id !== sid) },
+      };
+    });
+  };
+
   const next = () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
-    } else {
-      submit();
-    }
+    if (step < totalSteps) setStep(step + 1);
+    else void submit();
   };
 
   const prev = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const submit = () => {
-    const id = String(Math.floor(Math.random() * 900) + 100).padStart(4, '0');
-    setRefId(`#TB2026-${id}`);
-    setSubmitted(true);
+  /**
+   * Envoie l'inscription à Supabase via la fonction RPC
+   * `register_school_inscription` (transactionnelle, security definer).
+   * Crée en une seule transaction : l'établissement, le profil responsable,
+   * les robots, les profils élèves et leur rattachement à chaque robot via
+   * `team_members`.
+   */
+  const submit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    if (!supabase) {
+      setSubmitError(
+        "Supabase n'est pas configuré côté front (VITE_SUPABASE_URL manquant).",
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    if (
+      !form.charte1 ||
+      !form.charte2 ||
+      !form.charte3 ||
+      !form.charte4
+    ) {
+      setSubmitError(
+        'Merci de cocher les quatre engagements de la charte avant d\'envoyer.',
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    if (activeRobots.length === 0) {
+      setSubmitError(
+        'Aucune épreuve sélectionnée : revenez à l\'étape 03 et cochez au moins un robot.',
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    const payload = {
+      categorie,
+      etab_nom: form.etabNom,
+      etab_type: form.etabType,
+      etab_ville: form.etabVille,
+      etab_cp: form.etabCp,
+      resp_nom: form.respNom,
+      resp_prenom: form.respPrenom,
+      resp_nom_complet: `${form.respPrenom} ${form.respNom}`.trim(),
+      resp_disc: form.respDisc,
+      resp_tel: form.respTel,
+      resp_mail: form.respMail,
+      co_nom: form.coNom,
+      co_mail: form.coMail,
+      robots: activeRobots.map(({ key, robot }) => ({
+        epreuve: key,
+        nom: robot.nom,
+        cout: robot.cout,
+        descr: robot.descr,
+        students: robot.students
+          .filter((s) => s.nom.trim() || s.prenom.trim())
+          .map((s) => ({ nom: s.nom.trim(), prenom: s.prenom.trim() })),
+      })),
+    };
+
+    try {
+      const { data, error } = await supabase.rpc(
+        'register_school_inscription',
+        { payload },
+      );
+
+      if (error) throw error;
+
+      const result = data as {
+        edition_id: string;
+        etablissement_id: string;
+        teams: Array<{
+          team_id: string;
+          immatriculation: string;
+          epreuve: string;
+          students: Array<{ profile_id: string; nom: string; prenom: string }>;
+        }>;
+      };
+
+      const firstImmat = result.teams[0]?.immatriculation;
+      setRefId(firstImmat ? `#${firstImmat}` : `#${result.etablissement_id.slice(0, 8).toUpperCase()}`);
+      setCreatedTeams(
+        result.teams.map((t) => ({
+          immatriculation: t.immatriculation,
+          epreuve: t.epreuve,
+        })),
+      );
+      setSubmitted(true);
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err && 'message' in err
+            ? String((err as { message: unknown }).message)
+            : 'Échec de l\'envoi.';
+      setSubmitError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const addStudent = () => {
-    if (students.length >= 5) return;
-    setStudents((s) => [...s, { id: Date.now(), nom: '', prenom: '' }]);
-  };
-
-  const removeStudent = (id: number) => {
-    if (students.length <= 1) return;
-    setStudents((s) => s.filter((x) => x.id !== id));
-  };
+  const activeRobots = useMemo(
+    () =>
+      epreuvesList
+        .filter(({ key }) => robots[key])
+        .map(({ key }) => ({ key, robot: robots[key] as RobotInfo })),
+    [epreuvesList, robots],
+  );
 
   const summary = useMemo(() => {
     const etab = form.etabNom || '-';
     const ville = form.etabVille ? ` · ${form.etabVille}` : '';
     const resp = `${form.respPrenom} ${form.respNom}`.trim() || '-';
-    const robot = form.robotNom
-      ? `${form.robotNom}${form.robotCout ? ` · ${form.robotCout}€` : ''}`
-      : '-';
-    const eleves = `${students.length} élève${students.length > 1 ? 's' : ''}`;
+    const epreuveLabels = activeRobots
+      .map(({ key }) => defFor(key, categorie).title)
+      .join(' · ');
+    const totalEleves = activeRobots.reduce(
+      (acc, { robot }) => acc + robot.students.length,
+      0,
+    );
     return {
       etab: `${etab}${ville}`,
       resp,
-      epreuve: EPREUVE_LABELS[form.epreuve],
-      robot,
-      eleves,
+      robots: `${activeRobots.length} robot${activeRobots.length > 1 ? 's' : ''}`,
+      epreuves: epreuveLabels || '-',
+      eleves: `${totalEleves} élève${totalEleves > 1 ? 's' : ''} au total`,
     };
-  }, [form, students]);
+  }, [form, activeRobots, categorie]);
 
   return (
     <>
@@ -173,11 +435,11 @@ export function InscriptionPage() {
         <h1>
           Inscrire
           <br />
-          une <em>équipe.</em>
+          un <em>établissement.</em>
         </h1>
         <p>
-          Quatre étapes, deux minutes. Votre établissement reçoit un mail de
-          confirmation avec le numéro de dossier dans la foulée.
+          Quatre étapes. <strong>Un robot par épreuve</strong>, et chaque robot
+          a sa propre équipe d'élèves (jusqu'à 5 par robot).
         </p>
       </header>
 
@@ -213,8 +475,8 @@ export function InscriptionPage() {
             <h4>→ Rappel</h4>
             <p>
               Les inscriptions closent le <strong>12 décembre 2025</strong>.
-              Participation financière : <strong>50 €</strong> à régler à
-              TechTic&amp;Co. Un seul robot par équipe, une seule épreuve.
+              Participation : <strong>50 €</strong> à TechTic&amp;Co.{' '}
+              <strong>1 robot = 1 épreuve = 5 élèves max</strong>.
             </p>
           </div>
         </aside>
@@ -223,6 +485,7 @@ export function InscriptionPage() {
           <form onSubmit={(e) => e.preventDefault()}>
             {!submitted && (
               <>
+                {/* Étape 01 — Établissement */}
                 <div className={`form-section${step === 1 ? ' active' : ''}`}>
                   <div className="form-section-head">
                     <div className="form-section-eyebrow">// Étape 01 sur 04</div>
@@ -281,45 +544,9 @@ export function InscriptionPage() {
                       />
                     </div>
                   </div>
-                  <div className="field-row single">
-                    <div className="field">
-                      <label htmlFor="etab-adresse">Adresse complète</label>
-                      <input
-                        type="text"
-                        id="etab-adresse"
-                        placeholder="Place de l'arc en ciel"
-                        value={form.etabAdresse}
-                        onChange={(e) => update('etabAdresse', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="field-row">
-                    <div className="field">
-                      <label htmlFor="etab-uai">Numéro UAI (RNE)</label>
-                      <input
-                        type="text"
-                        id="etab-uai"
-                        placeholder="0573456K"
-                        value={form.etabUai}
-                        onChange={(e) => update('etabUai', e.target.value)}
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor="etab-academie">Académie</label>
-                      <select
-                        id="etab-academie"
-                        value={form.etabAcademie}
-                        onChange={(e) => update('etabAcademie', e.target.value)}
-                      >
-                        <option>Nancy-Metz</option>
-                        <option>Strasbourg</option>
-                        <option>Reims</option>
-                        <option>Autre</option>
-                      </select>
-                    </div>
-                  </div>
                 </div>
 
+                {/* Étape 02 — Responsable */}
                 <div className={`form-section${step === 2 ? ' active' : ''}`}>
                   <div className="form-section-head">
                     <div className="form-section-eyebrow">// Étape 02 sur 04</div>
@@ -417,161 +644,204 @@ export function InscriptionPage() {
                   </div>
                 </div>
 
+                {/* Étape 03 — Robots, épreuves & équipes */}
                 <div className={`form-section${step === 3 ? ' active' : ''}`}>
                   <div className="form-section-head">
                     <div className="form-section-eyebrow">// Étape 03 sur 04</div>
-                    <h2>L'épreuve &amp; le robot.</h2>
+                    <h2>Les robots, épreuves &amp; équipes.</h2>
                     <p>
-                      Un robot ne peut participer qu'à une seule épreuve.
-                      Choisissez avec soin - pas de changement après validation.
+                      <strong>Un robot par épreuve, jusqu'à 5 élèves par robot.</strong>{' '}
+                      {categorie === 'college' ? (
+                        <>
+                          Les quatre épreuves « collèges » sont obligatoires.
+                          Le sumo autonome est facultatif — cochez-le si votre
+                          établissement engage un robot dédié.
+                        </>
+                      ) : (
+                        <>
+                          Les lycées engagent un robot sumo autonome et une
+                          présentation projet en langue vivante.
+                        </>
+                      )}
                     </p>
                   </div>
 
-                  <div className="field-group-title">Épreuve choisie</div>
+                  <div className="field-group-title">
+                    Épreuves engagées
+                    <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
+                      {' '}· {activeRobots.length} robot
+                      {activeRobots.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
                   <div className="event-picker">
-                    {EPREUVE_OPTIONS.map((opt) => (
-                      <label key={opt.value} className="event-pick">
-                        <input
-                          type="radio"
-                          name="epreuve"
-                          value={opt.value}
-                          checked={form.epreuve === opt.value}
-                          onChange={() => update('epreuve', opt.value)}
-                        />
-                        <div className="event-pick-card">
-                          <div className="event-pick-num">{opt.num}</div>
-                          <h4>{opt.title}</h4>
-                          <p>{opt.desc}</p>
-                        </div>
-                      </label>
-                    ))}
+                    {epreuvesList.map(({ key, mandatory }) => {
+                      const def = defFor(key, categorie);
+                      const checked = mandatory || !!robots[key];
+                      return (
+                        <label
+                          key={key}
+                          className="event-pick"
+                          style={mandatory ? { cursor: 'default' } : undefined}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={mandatory}
+                            onChange={(e) =>
+                              !mandatory && toggleEpreuve(key, e.target.checked)
+                            }
+                          />
+                          <div className="event-pick-card">
+                            <div className="event-pick-num">
+                              {def.num} ·{' '}
+                              {mandatory ? 'Obligatoire' : 'Facultatif'}
+                            </div>
+                            <h4>{def.title}</h4>
+                            <p>{def.desc}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
 
-                  <div className="field-group-title">Identité du robot</div>
-                  <div className="field-row">
-                    <div className="field">
-                      <label htmlFor="robot-nom">Nom du robot</label>
-                      <input
-                        type="text"
-                        id="robot-nom"
-                        placeholder="Colossus Mk-II"
-                        value={form.robotNom}
-                        onChange={(e) => update('robotNom', e.target.value)}
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor="robot-sponsor">Sponsor éventuel</label>
-                      <input
-                        type="text"
-                        id="robot-sponsor"
-                        placeholder="-"
-                        value={form.robotSponsor}
-                        onChange={(e) => update('robotSponsor', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="field-row">
-                    <div className="field">
-                      <label htmlFor="robot-cout">Coût estimé (€ HT)</label>
-                      <input
-                        type="number"
-                        id="robot-cout"
-                        placeholder="85"
-                        max={100}
-                        value={form.robotCout}
-                        onChange={(e) => update('robotCout', e.target.value)}
-                      />
-                    </div>
-                    <div className="field">
-                      <label htmlFor="robot-carte">Carte électronique</label>
-                      <select
-                        id="robot-carte"
-                        value={form.robotCarte}
-                        onChange={(e) => update('robotCarte', e.target.value)}
-                      >
-                        <option>Arduino UNO</option>
-                        <option>Arduino Nano</option>
-                        <option>ESP32</option>
-                        <option>Raspberry Pi Pico</option>
-                        <option>micro:bit</option>
-                        <option>Autre</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="field-row single">
-                    <div className="field">
-                      <label htmlFor="robot-descr">
-                        Description courte (démarche, originalité)
-                      </label>
-                      <textarea
-                        id="robot-descr"
-                        placeholder="Un robot inspiré de…"
-                        value={form.robotDescr}
-                        onChange={(e) => update('robotDescr', e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  {activeRobots.map(({ key, robot }, idx) => {
+                    const def = defFor(key, categorie);
+                    return (
+                      <div key={key}>
+                        <div
+                          className="field-group-title"
+                          style={{ marginTop: idx === 0 ? 28 : 32 }}
+                        >
+                          Robot {def.num} · {def.title}
+                        </div>
+                        <div className="field-row">
+                          <div className="field">
+                            <label htmlFor={`robot-nom-${key}`}>
+                              Nom du robot
+                            </label>
+                            <input
+                              type="text"
+                              id={`robot-nom-${key}`}
+                              placeholder="Colossus Mk-II"
+                              value={robot.nom}
+                              onChange={(e) =>
+                                updateRobot(key, 'nom', e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="field">
+                            <label htmlFor={`robot-cout-${key}`}>
+                              Coût estimé (€ HT)
+                            </label>
+                            <input
+                              type="number"
+                              id={`robot-cout-${key}`}
+                              placeholder="85"
+                              max={100}
+                              value={robot.cout}
+                              onChange={(e) =>
+                                updateRobot(key, 'cout', e.target.value)
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="field-row single">
+                          <div className="field">
+                            <label htmlFor={`robot-descr-${key}`}>
+                              Description courte (démarche, originalité)
+                            </label>
+                            <textarea
+                              id={`robot-descr-${key}`}
+                              placeholder="Un robot inspiré de…"
+                              value={robot.descr}
+                              onChange={(e) =>
+                                updateRobot(key, 'descr', e.target.value)
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {/* Élèves de CE robot */}
+                        <div
+                          className="field-group-title"
+                          style={{ marginTop: 18 }}
+                        >
+                          Équipe du robot
+                          <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
+                            {' '}· {robot.students.length} / 5 élève
+                            {robot.students.length > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="students-grid">
+                          {robot.students.map((stu, i) => (
+                            <div className="student-row" key={stu.id}>
+                              <span className="num">
+                                {String(i + 1).padStart(2, '0')}
+                              </span>
+                              <input
+                                type="text"
+                                placeholder="Nom Prénom"
+                                value={stu.nom}
+                                onChange={(e) =>
+                                  updateStudent(key, stu.id, 'nom', e.target.value)
+                                }
+                              />
+                              <input
+                                type="text"
+                                placeholder="Classe"
+                                value={stu.prenom}
+                                onChange={(e) =>
+                                  updateStudent(
+                                    key,
+                                    stu.id,
+                                    'prenom',
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                              <button
+                                type="button"
+                                aria-label="Supprimer cet élève"
+                                onClick={() => removeStudent(key, stu.id)}
+                                disabled={robot.students.length <= 1}
+                              >
+                                <svg
+                                  width={14}
+                                  height={14}
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path d="M6 6l12 12M6 18L18 6" />
+                                </svg>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          className="add-student"
+                          onClick={() => addStudent(key)}
+                          disabled={robot.students.length >= 5}
+                        >
+                          + Ajouter un élève à ce robot
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
+                {/* Étape 04 — Charte & validation */}
                 <div className={`form-section${step === 4 ? ' active' : ''}`}>
                   <div className="form-section-head">
                     <div className="form-section-eyebrow">// Étape 04 sur 04</div>
-                    <h2>L'équipe &amp; la charte.</h2>
+                    <h2>La charte &amp; envoi.</h2>
                     <p>
-                      Jusqu'à 5 élèves par robot. Vérifiez les noms - ils
-                      serviront pour les badges et le diplôme.
+                      Vérifiez le récap puis cochez les engagements de la
+                      charte avant d'envoyer le dossier.
                     </p>
                   </div>
-
-                  <div className="field-group-title">Élèves (1 à 5)</div>
-                  <div className="students-grid">
-                    {students.map((stu, i) => (
-                      <div className="student-row" key={stu.id}>
-                        <span className="num">{String(i + 1).padStart(2, '0')}</span>
-                        <input
-                          type="text"
-                          placeholder="Nom"
-                          value={stu.nom}
-                          onChange={(e) =>
-                            setStudents((cur) =>
-                              cur.map((x) =>
-                                x.id === stu.id ? { ...x, nom: e.target.value } : x,
-                              ),
-                            )
-                          }
-                        />
-                        <input
-                          type="text"
-                          placeholder="Prénom · Classe"
-                          value={stu.prenom}
-                          onChange={(e) =>
-                            setStudents((cur) =>
-                              cur.map((x) =>
-                                x.id === stu.id ? { ...x, prenom: e.target.value } : x,
-                              ),
-                            )
-                          }
-                        />
-                        <button
-                          type="button"
-                          aria-label="Supprimer"
-                          onClick={() => removeStudent(stu.id)}
-                        >
-                          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <path d="M6 6l12 12M6 18L18 6" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    className="add-student"
-                    onClick={addStudent}
-                    disabled={students.length >= 5}
-                  >
-                    + Ajouter un élève
-                  </button>
 
                   <div className="field-group-title">Charte du concours</div>
 
@@ -583,9 +853,10 @@ export function InscriptionPage() {
                     />
                     <div className="check-txt">
                       <strong>Je certifie</strong> que l'étude, la conception, la
-                      réalisation, la mise au point et la programmation du robot
-                      ont été menées <strong>par les élèves uniquement</strong>,
-                      conformément au règlement général du concours.
+                      réalisation, la mise au point et la programmation de
+                      chaque robot ont été menées{' '}
+                      <strong>par les élèves uniquement</strong>, conformément
+                      au règlement général du concours.
                     </div>
                   </label>
 
@@ -596,7 +867,7 @@ export function InscriptionPage() {
                       onChange={(e) => update('charte2', e.target.checked)}
                     />
                     <div className="check-txt">
-                      J'accepte que le robot respecte{' '}
+                      J'accepte que chaque robot respecte{' '}
                       <strong>les dimensions et la masse imposées</strong>, et
                       que le coût total reste{' '}
                       <strong>inférieur à 100 € HT</strong> (justificatifs
@@ -641,18 +912,25 @@ export function InscriptionPage() {
                       <span className="val">{summary.resp}</span>
                     </div>
                     <div className="summary-row">
-                      <span className="key">Épreuve</span>
-                      <span className="val">{summary.epreuve}</span>
+                      <span className="key">Robots engagés</span>
+                      <span className="val">{summary.robots}</span>
                     </div>
                     <div className="summary-row">
-                      <span className="key">Robot</span>
-                      <span className="val">{summary.robot}</span>
+                      <span className="key">Épreuves</span>
+                      <span className="val">{summary.epreuves}</span>
                     </div>
                     <div className="summary-row">
-                      <span className="key">Élèves</span>
+                      <span className="key">Effectif total</span>
                       <span className="val">{summary.eleves}</span>
                     </div>
                   </div>
+
+                  {submitError && (
+                    <div className="callout warn" style={{ marginTop: 20 }}>
+                      <div className="callout-label">→ Envoi impossible</div>
+                      {submitError}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-nav">
@@ -660,7 +938,7 @@ export function InscriptionPage() {
                     type="button"
                     className="btn btn-ghost prev"
                     onClick={prev}
-                    disabled={step === 1}
+                    disabled={step === 1 || submitting}
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path d="M19 12H5M11 6L5 12l6 6" />
@@ -670,8 +948,17 @@ export function InscriptionPage() {
                   <div className="step-indicator">
                     Étape <strong>{step}</strong> / 4
                   </div>
-                  <button type="button" className="btn btn-primary next" onClick={next}>
-                    {step === totalSteps ? "Envoyer l'inscription" : 'Suivant'}
+                  <button
+                    type="button"
+                    className="btn btn-primary next"
+                    onClick={next}
+                    disabled={submitting}
+                  >
+                    {step === totalSteps
+                      ? submitting
+                        ? 'Envoi…'
+                        : "Envoyer l'inscription"
+                      : 'Suivant'}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path d="M5 12h14M13 6l6 6-6 6" />
                     </svg>
@@ -684,16 +971,28 @@ export function InscriptionPage() {
               <div className="success-screen active">
                 <div className="success-icon">✓</div>
                 <h2>
-                  Inscription <em>envoyée</em>.
+                  Inscription <em>enregistrée</em>.
                 </h2>
                 <p>
-                  Votre dossier part dans la file d'attente. Un e-mail de
-                  confirmation vous sera envoyé sous 48h, et le responsable du
-                  concours (Arnaud Roesslinger) vous recontactera avant le 20
-                  décembre.
+                  Votre dossier ({createdTeams.length} robot
+                  {createdTeams.length > 1 ? 's' : ''}, {summary.eleves}) est
+                  bien enregistré en base. Les robots ont reçu les
+                  immatriculations suivantes :
                 </p>
+                {createdTeams.length > 0 && (
+                  <div className="summary" style={{ margin: '16px auto 24px', maxWidth: 460 }}>
+                    {createdTeams.map((t) => (
+                      <div key={t.immatriculation} className="summary-row">
+                        <span className="key">
+                          {t.immatriculation}
+                        </span>
+                        <span className="val">{t.epreuve.replace(/_/g, ' ')}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="success-id">
-                  DOSSIER <strong>{refId}</strong>
+                  RÉFÉRENCE <strong>{refId}</strong>
                 </div>
                 <div className="success-actions">
                   <Link to="/reglement" className="btn btn-ghost">
