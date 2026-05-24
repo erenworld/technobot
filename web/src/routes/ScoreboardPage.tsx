@@ -196,8 +196,6 @@ export function ScoreboardPage() {
 
   return (
     <>
-      <Nav active="scoreboard" />
-
       <div className="topstrip">
         <div className="topstrip-left">
           <span className="live-indicator">
