@@ -39,18 +39,43 @@ export type Profile = {
   prenom: string;
   email: string;
   role: Role;
+  discipline?: string | null;
+  etablissement_id?: string | null;
   created_at: string;
 };
 
 export type Team = {
   id: string;
   edition_id: string;
+  etablissement_id?: string | null;
   immatriculation: string;
   nom_robot: string;
-  etablissement: string;
+  /** Résolu côté front depuis la table `etablissements`. */
+  etablissement?: string;
   categorie: Categorie;
   epreuve: Epreuve;
   statut: StatutTeam;
+  poids_g?: number | null;
+  dimension_lxl?: string | null;
+  cout_ht?: number | null;
+  notes_technique?: string | null;
+  description?: string | null;
+};
+
+export type Etablissement = {
+  id: string;
+  nom: string;
+  type: string;
+  ville: string | null;
+  code_postal: string | null;
+  contact_nom: string | null;
+  contact_email: string | null;
+  contact_tel: string | null;
+  logo_url: string | null;
+};
+
+export type ControleTechniquePayload = {
+  statut: 'valide' | 'controle_technique_ok' | 'disqualifie';
   notes_technique?: string | null;
 };
 
