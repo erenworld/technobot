@@ -8,7 +8,9 @@ import { ReglementPage } from './routes/ReglementPage';
 import { InscriptionPage } from './routes/InscriptionPage';
 import { ScoreboardPage } from './routes/ScoreboardPage';
 import { LoginPage } from './routes/LoginPage';
+import { AdminPage } from './routes/AdminPage';
 import { NotFoundPage } from './routes/NotFoundPage';
+import { RequireAuth } from './components/RequireAuth';
 
 import './styles/global.css';
 
@@ -18,6 +20,14 @@ const router = createBrowserRouter([
   { path: '/inscription', element: <InscriptionPage /> },
   { path: '/scoreboard', element: <ScoreboardPage /> },
   { path: '/login', element: <LoginPage /> },
+  {
+    path: '/admin',
+    element: (
+      <RequireAuth>
+        <AdminPage />
+      </RequireAuth>
+    ),
+  },
   { path: '*', element: <NotFoundPage /> },
 ]);
 
