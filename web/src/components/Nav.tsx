@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 
 type NavKey = 'home' | 'reglement' | 'scoreboard' | 'inscription';
 
@@ -10,15 +11,37 @@ const ITEMS: Array<{ to: string; label: string; key: NavKey; cta?: boolean }> = 
 ];
 
 export function Nav({ active }: { active?: NavKey }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <nav className="nav">
-      <div className="nav-inner">
+      <div className={`nav-inner ${isMenuOpen ? 'is-open' : ''}`}>
         <NavLink to="/" className="brand">
           <span className="brand-dot"></span>
           <span>TECHNOBOT</span>
           <span className="brand-tag">/ 2026</span>
         </NavLink>
-        <div className="nav-links">
+        <button
+          type="button"
+          className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
+          aria-expanded={isMenuOpen}
+          aria-controls="site-navigation"
+          aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          onClick={() => setIsMenuOpen((open) => !open)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div
+          id="site-navigation"
+          className={`nav-links ${isMenuOpen ? 'is-open' : ''}`}
+        >
           {ITEMS.map((item) => {
             const classes: string[] = [];
             if (item.cta) classes.push('nav-cta');
