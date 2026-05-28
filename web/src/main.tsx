@@ -11,6 +11,7 @@ import { LoginPage } from './routes/LoginPage';
 import { AdminPage } from './routes/AdminPage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { RequireAuth } from './components/RequireAuth';
+import { LegalPage } from './routes/LegalPage';
 
 import './styles/global.css';
 
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
   { path: '/inscription', element: <InscriptionPage /> },
   { path: '/scoreboard', element: <ScoreboardPage /> },
   { path: '/login', element: <LoginPage /> },
+  { path: '/cgu-confidentialite', element: <LegalPage /> },
   {
     path: '/admin',
     element: (
