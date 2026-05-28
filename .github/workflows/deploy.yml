@@ -1,0 +1,22 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 57.129.100.131
+          username: debian
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/technobot
+            git pull origin main
+            sudo docker compose -f docker-compose.prod.yml up --build -d
+            sudo docker image prune -f

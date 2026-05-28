@@ -14,7 +14,7 @@ async function main() {
     await client.connect();
     console.log('Connected to database.');
 
-    const sql = fs.readFileSync('c:\\dev\\Technobot\\scripts\\dev\\dump.sql', 'utf8');
+    const sql = fs.readFileSync('/home/matheo/Tek2/ProjetPerso/Technobot/scripts/dev/dump.sql', 'utf8');
     
     console.log('Executing SQL dump...');
     await client.query(sql);
