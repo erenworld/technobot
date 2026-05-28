@@ -28,6 +28,7 @@ export function Footer() {
             <li><Link to="/reglement">Règlement</Link></li>
             <li><Link to="/inscription">Inscription</Link></li>
             <li><Link to="/scoreboard">Scoreboard live</Link></li>
+            <li><Link to="/cgu-confidentialite">CGU &amp; Politique de Confidentialité</Link></li>
           </ul>
         </div>
         <div className="foot-col">
@@ -62,6 +63,7 @@ export function FooterCompact() {
           <Link to="/reglement">Règlement</Link>
           <Link to="/inscription">Inscription</Link>
           <Link to="/scoreboard">Scoreboard</Link>
+          <Link to="/cgu-confidentialite">CGU &amp; Confidentialité</Link>
         </div>
         <div className="meta">© 2026 Tech Tic &amp; Co · Marque déposée</div>
       </div>
@@ -85,7 +87,8 @@ export function FooterScoreboard() {
         <span>TECHNOBOT 2026 · Scoreboard live · Affichage salle</span>
         <span>
           <Link to="/">Accueil</Link> · <Link to="/reglement">Règlement</Link> ·{' '}
-          <Link to="/inscription">Inscription</Link>
+          <Link to="/inscription">Inscription</Link> ·{' '}
+          <Link to="/cgu-confidentialite">CGU &amp; Confidentialité</Link>
         </span>
       </div>
     </footer>

@@ -852,6 +852,7 @@ export function InscriptionPage() {
                       onChange={(e) => update('charte1', e.target.checked)}
                     />
                     <div className="check-txt">
+                      <span style={{ color: 'var(--red)' }}>* </span>
                       <strong>Je certifie</strong> que l'étude, la conception, la
                       réalisation, la mise au point et la programmation de
                       chaque robot ont été menées{' '}
@@ -867,6 +868,7 @@ export function InscriptionPage() {
                       onChange={(e) => update('charte2', e.target.checked)}
                     />
                     <div className="check-txt">
+                      <span style={{ color: 'var(--red)' }}>* </span>
                       J'accepte que chaque robot respecte{' '}
                       <strong>les dimensions et la masse imposées</strong>, et
                       que le coût total reste{' '}
@@ -882,6 +884,7 @@ export function InscriptionPage() {
                       onChange={(e) => update('charte3', e.target.checked)}
                     />
                     <div className="check-txt">
+                      <span style={{ color: 'var(--red)' }}>* </span>
                       J'accepte les prises de vue photos et vidéos réalisées
                       pendant l'événement dans le cadre de la{' '}
                       <strong>communication TECHNOBOT</strong> (site, réseaux
@@ -896,6 +899,7 @@ export function InscriptionPage() {
                       onChange={(e) => update('charte4', e.target.checked)}
                     />
                     <div className="check-txt">
+                      <span style={{ color: 'var(--red)' }}>* </span>
                       L'établissement s'engage à verser la{' '}
                       <strong>participation de 50 €</strong> à l'association
                       TechTic&amp;Co avant le 15 mai 2026.
@@ -924,6 +928,34 @@ export function InscriptionPage() {
                       <span className="val">{summary.eleves}</span>
                     </div>
                   </div>
+
+                  <p
+                    style={{
+                      marginTop: 20,
+                      fontSize: 12,
+                      color: 'var(--muted)',
+                      textAlign: 'center',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    En envoyant ce formulaire, vous acceptez les{' '}
+                    <Link
+                      to="/cgu-confidentialite"
+                      target="_blank"
+                      style={{ textDecoration: 'underline', color: 'var(--red)' }}
+                    >
+                      Conditions Générales d'Utilisation
+                    </Link>{' '}
+                    et confirmez avoir lu la{' '}
+                    <Link
+                      to="/cgu-confidentialite"
+                      target="_blank"
+                      style={{ textDecoration: 'underline', color: 'var(--red)' }}
+                    >
+                      Politique de Confidentialité
+                    </Link>{' '}
+                    de la plateforme TechnoBot.
+                  </p>
 
                   {submitError && (
                     <div className="callout warn" style={{ marginTop: 20 }}>

@@ -649,6 +649,27 @@
       .foot-bottom { flex-direction: column; gap: 10px; }
     }
 
+    .foot-legal-link {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--cream) !important;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s ease;
+    }
+    .foot-legal-link:hover {
+      background: var(--red) !important;
+      border-color: var(--red) !important;
+      color: white !important;
+      transform: translateY(-1px);
+    }
+
     /* Reveal on scroll */
     .reveal {
       opacity: 0;
