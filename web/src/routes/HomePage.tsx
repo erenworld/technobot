@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
+import epitechLogo from '../assets/EPITECH-LOGO-BLEU-2025.png';
 
 const TARGET_TS = new Date('2026-06-05T09:30:00+02:00').getTime();
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -487,6 +488,25 @@ export function HomePage() {
             <div className="partner-cell">
               Région Grand Est<small>+ Ville de Yutz</small>
             </div>
+          </div>
+          <div
+            className="reveal"
+            style={{
+              marginTop: 40,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <div className="partners-label" style={{ textAlign: 'center' }}>
+              // SITE RÉALISÉ PAR DES ÉTUDIANTS D'EPITECH
+            </div>
+            <img
+              src={epitechLogo}
+              alt="Epitech"
+              style={{ height: 56, width: 'auto' }}
+            />
           </div>
         </div>
       </section>
