@@ -42,6 +42,7 @@ export function Footer() {
       </div>
       <div className="foot-bottom">
         <span>© 2026 Tech Tic &amp; Co</span>
+        <span>Site réalisé par des étudiants d'EPITECH</span>
         <span id="year-tag">Édition N°15 · Yutz, Moselle</span>
       </div>
     </footer>
@@ -65,7 +66,10 @@ export function FooterCompact() {
           <Link to="/scoreboard">Scoreboard</Link>
           <Link to="/cgu-confidentialite">CGU &amp; Confidentialité</Link>
         </div>
-        <div className="meta">© 2026 Tech Tic &amp; Co · Marque déposée</div>
+        <div className="meta">
+          © 2026 Tech Tic &amp; Co · Marque déposée · Site réalisé par des
+          étudiants d'EPITECH
+        </div>
       </div>
     </footer>
   );
@@ -88,7 +92,8 @@ export function FooterScoreboard() {
         <span>
           <Link to="/">Accueil</Link> · <Link to="/reglement">Règlement</Link> ·{' '}
           <Link to="/inscription">Inscription</Link> ·{' '}
-          <Link to="/cgu-confidentialite">CGU &amp; Confidentialité</Link>
+          <Link to="/cgu-confidentialite">CGU &amp; Confidentialité</Link> · Site
+          réalisé par des étudiants d'EPITECH
         </span>
       </div>
     </footer>

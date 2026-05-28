@@ -6,7 +6,7 @@ type NavKey = 'home' | 'reglement' | 'scoreboard' | 'inscription';
 const ITEMS: Array<{ to: string; label: string; key: NavKey; cta?: boolean }> = [
   { to: '/', label: 'Accueil', key: 'home' },
   { to: '/reglement', label: 'Règlement', key: 'reglement' },
-  { to: '/scoreboard', label: 'Scoreboard', key: 'scoreboard' },
+  // { to: '/scoreboard', label: 'Scoreboard', key: 'scoreboard' },
   { to: '/inscription', label: "S'inscrire", key: 'inscription', cta: true },
 ];
 
