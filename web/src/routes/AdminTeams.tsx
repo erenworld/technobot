@@ -543,6 +543,7 @@ function TeamCardBody({
   onUpdated: (t: Team) => void;
   onDeleted: () => void;
 }) {
+  const [nomRobot, setNomRobot] = useState<string>(team.nom_robot ?? '');
   const [statut, setStatut] = useState<ControleTechniquePayload['statut']>(
     team.statut === 'inscrit' ? 'valide' : team.statut,
   );
@@ -554,22 +555,33 @@ function TeamCardBody({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const dirty =
-    statut !== team.statut || (notes || '') !== (team.notes_technique ?? '');
+    (nomRobot.trim() || '') !== (team.nom_robot ?? '') ||
+    statut !== team.statut ||
+    (notes || '') !== (team.notes_technique ?? '');
 
   async function save() {
     setSaving(true);
     setSaveError(null);
     try {
-      const payload: ControleTechniquePayload = {
+      const newNom = nomRobot.trim();
+
+      // Mise à jour nom_robot via Supabase si modifié
+      if (newNom !== (team.nom_robot ?? '') && supabase) {
+        const { error } = await supabase
+          .from('teams')
+          .update({ nom_robot: newNom || null })
+          .eq('id', team.id);
+        if (error) throw new Error(error.message);
+      }
+
+      // Mise à jour CT via l'API REST
+      const updated = await api.teams.updateControleTechnique(team.id, {
         statut,
         notes_technique: notes.trim() || null,
-      };
-      const updated = await api.teams.updateControleTechnique(team.id, payload);
-      onUpdated(updated);
+      });
+      onUpdated({ ...updated, nom_robot: newNom || updated.nom_robot });
     } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : 'Échec de la mise à jour.',
-      );
+      setSaveError(err instanceof Error ? err.message : 'Échec de la mise à jour.');
     } finally {
       setSaving(false);
     }
@@ -641,10 +653,10 @@ function TeamCardBody({
         />
         <DetailField label="Catégorie" value={team.categorie} />
         <DetailField label="Épreuve" value={EPREUVE_LABELS[team.epreuve]} />
-        <DetailField
+        {/* <DetailField
           label="Coût HT"
           value={team.cout_ht != null ? `${team.cout_ht} €` : '—'}
-        />
+        /> */}
       </div>
 
       {team.description && (
@@ -677,6 +689,20 @@ function TeamCardBody({
           </div>
         </div>
       )}
+
+      <div className="field-group-title">Nom du robot</div>
+      <div className="field-row single">
+        <div className="field">
+          <label htmlFor={`nom-robot-${team.id}`}>Nom du robot</label>
+          <input
+            id={`nom-robot-${team.id}`}
+            type="text"
+            placeholder="Nom du robot…"
+            value={nomRobot}
+            onChange={(e) => setNomRobot(e.target.value)}
+          />
+        </div>
+      </div>
 
       <div className="field-group-title">Contrôle technique</div>
       <div className="field-row">
@@ -747,6 +773,7 @@ function TeamCardBody({
               type="button"
               className="btn btn-ghost"
               onClick={() => {
+                setNomRobot(team.nom_robot ?? '');
                 setStatut(team.statut === 'inscrit' ? 'valide' : team.statut);
                 setNotes(team.notes_technique ?? '');
                 setSaveError(null);
