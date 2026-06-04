@@ -31,6 +31,7 @@ const EPREUVE_COLORS: Record<Epreuve, string> = {
 };
 
 const EPREUVE_ORDER: Epreuve[] = [
+  'sumo',
   'suivi_ligne',
   'formule_robot',
   'design',
