@@ -26,11 +26,14 @@ const TAB_LABELS: Record<Tab, { title: string; sub: string }> = {
 
 export function AdminPage() {
   const [tab, setTab] = useState<Tab>('planning');
-  const { profile, signOut } = useAuth();
+  const { session, profile, signOut } = useAuth();
 
-  const userLabel = profile
-    ? `${profile.prenom} ${profile.nom}`.trim() || profile.email
-    : 'compte connecté';
+  const userLabel = (
+    `${profile?.prenom || ''} ${profile?.nom || ''}`.trim() ||
+    profile?.email ||
+    session?.user?.email ||
+    'compte connecté'
+  );
 
   return (
     <>
