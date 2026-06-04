@@ -176,7 +176,7 @@ export function LoginPage() {
               </div>
             </form>
 
-            <div
+            {/* <div
               style={{
                 marginTop: 28,
                 paddingTop: 24,
@@ -196,7 +196,7 @@ export function LoginPage() {
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
               </Link>
-            </div>
+            </div> */}
           </div>
         </main>
       </div>

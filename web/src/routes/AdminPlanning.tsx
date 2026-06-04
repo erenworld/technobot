@@ -31,7 +31,6 @@ const EPREUVE_COLORS: Record<Epreuve, string> = {
 };
 
 const EPREUVE_ORDER: Epreuve[] = [
-  'sumo',
   'suivi_ligne',
   'formule_robot',
   'design',
@@ -50,6 +49,7 @@ type SlotForm = {
   heurePresentation: string;
   heureDebut: string;
   heureFin: string;
+  zone: string;
 };
 
 function fmtTime(raw: string | null | undefined) {
@@ -88,7 +88,7 @@ export function AdminPlanning() {
   const [filter, setFilter] = useState<PlanningFilter>('all');
   const [editingSlot, setEditingSlot] = useState<PlanningSlot | null>(null);
   const [addingForTeam, setAddingForTeam] = useState<Team | null>(null);
-  const [form, setForm] = useState<SlotForm>({ teamId: '', epreuveId: '', epreuveType: 'sumo', heurePresentation: '08:00', heureDebut: '08:00', heureFin: '08:30' });
+  const [form, setForm] = useState<SlotForm>({ teamId: '', epreuveId: '', epreuveType: 'sumo', heurePresentation: '08:00', heureDebut: '08:00', heureFin: '08:30', zone: '' });
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -135,11 +135,19 @@ export function AdminPlanning() {
 
   const loading = loadingTeams || loadingEpreuves || loadingSlots;
 
-  /** Map type épreuve → EpreuveDB (priorité : même edition_id que l'équipe). */
-  const epreuveByTypeAndEdition = useMemo(() => {
-    const map: Record<string, Record<string, EpreuveDB>> = {};
+  /**
+   * Map "type_categorie" → EpreuveDB — clé composée pour distinguer
+   * presentation_projet collège vs lycée (même type, catégorie différente).
+   */
+  const epreuveByKey = useMemo(() => {
+    const map: Record<string, EpreuveDB> = {};
     for (const ep of epreuves) {
-      (map[ep.type] ??= {})[ep.edition_id ?? ''] = ep;
+      // Clé précise : type + categorie + edition
+      const full = `${ep.type}__${ep.categorie ?? ''}__${ep.edition_id ?? ''}`;
+      map[full] = ep;
+      // Clé de fallback sans edition (au cas où edition_id NULL)
+      const noEd = `${ep.type}__${ep.categorie ?? ''}`;
+      if (!map[noEd]) map[noEd] = ep;
     }
     return map;
   }, [epreuves]);
@@ -151,8 +159,9 @@ export function AdminPlanning() {
   }, [epreuves]);
 
   function getEpreuveId(team: Team): string | null {
-    const byEdition = epreuveByTypeAndEdition[team.epreuve] ?? {};
-    const match = byEdition[team.edition_id ?? ''] ?? Object.values(byEdition)[0];
+    const full = `${team.epreuve}__${team.categorie}__${team.edition_id ?? ''}`;
+    const noEd = `${team.epreuve}__${team.categorie}`;
+    const match = epreuveByKey[full] ?? epreuveByKey[noEd];
     return match?.id ?? null;
   }
 
@@ -185,7 +194,7 @@ export function AdminPlanning() {
     const ep = team.epreuve as Epreuve;
     setAddingForTeam(team);
     setEditingSlot(null);
-    setForm({ teamId: team.id, epreuveId, epreuveType: ep, heurePresentation: '08:00', heureDebut: '08:00', heureFin: '08:30' });
+    setForm({ teamId: team.id, epreuveId, epreuveType: ep, heurePresentation: '08:00', heureDebut: '08:00', heureFin: '08:30', zone: '' });
     setFormError(null);
   }
 
@@ -199,6 +208,7 @@ export function AdminPlanning() {
       heurePresentation: fmtTime(slot.heure_presentation) === '—' ? '08:00' : fmtTime(slot.heure_presentation),
       heureDebut: fmtTime(slot.heure_debut_rencontres) === '—' ? '08:00' : fmtTime(slot.heure_debut_rencontres),
       heureFin: fmtTime(slot.heure_fin_rencontres) === '—' ? '08:30' : fmtTime(slot.heure_fin_rencontres),
+      zone: slot.zone_rencontres ?? slot.salle_presentation ?? '',
     });
     setFormError(null);
   }
@@ -232,6 +242,8 @@ export function AdminPlanning() {
     const payload: Record<string, string | null> = {
       team_id: form.teamId,
       epreuve_id: form.epreuveId,
+      zone_rencontres: !pres ? (form.zone.trim() || null) : null,
+      salle_presentation: pres ? (form.zone.trim() || null) : null,
       heure_presentation: pres ? form.heurePresentation : null,
       heure_debut_rencontres: pres ? null : form.heureDebut,
       heure_fin_rencontres: pres ? null : form.heureFin,
@@ -452,7 +464,14 @@ function TimelineView({
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--muted)' }}>{etabName}</div>
               </div>
-              <EpreuveBadge epreuve={epreuveType} />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                <EpreuveBadge epreuve={epreuveType} />
+                {(slot.zone_rencontres || slot.salle_presentation) && (
+                  <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)' }}>
+                    {slot.zone_rencontres ?? slot.salle_presentation}
+                  </span>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {team && slot.epreuve_id && (
                   <button type="button" className="btn btn-primary"
@@ -589,8 +608,13 @@ function EpreuveView({
                         background: isEditing || isScoring ? 'var(--cream-2)' : 'transparent',
                         borderBottom: '1px solid var(--line)',
                       }}>
-                        <div style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 13 }}>
-                          {timeDisplay}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 13 }}>{timeDisplay}</span>
+                          {(slot.zone_rencontres || slot.salle_presentation) && (
+                            <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)' }}>
+                              {slot.zone_rencontres ?? slot.salle_presentation}
+                            </span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
                           {slot.epreuve_id && (
@@ -661,28 +685,34 @@ function SlotFormInline({ form, setForm, formError, saving, onSave, onCancel, is
         {isEdit ? '// Modifier le créneau' : '// Nouveau créneau'}
       </div>
 
-      {pres ? (
-        <div className="field-row" style={{ gridTemplateColumns: '1fr' }}>
+      <div className="field-row" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+        {pres ? (
           <div className="field">
             <label>Heure de passage</label>
             <input type="time" value={form.heurePresentation} min="07:00" max="19:00"
               onChange={(e) => setForm((f) => ({ ...f, heurePresentation: e.target.value }))} />
           </div>
+        ) : (
+          <>
+            <div className="field">
+              <label>Heure de début</label>
+              <input type="time" value={form.heureDebut} min="07:00" max="19:00"
+                onChange={(e) => setForm((f) => ({ ...f, heureDebut: e.target.value }))} />
+            </div>
+            <div className="field">
+              <label>Heure de fin</label>
+              <input type="time" value={form.heureFin} min="07:00" max="19:00"
+                onChange={(e) => setForm((f) => ({ ...f, heureFin: e.target.value }))} />
+            </div>
+          </>
+        )}
+        <div className="field">
+          <label>{pres ? 'Salle' : 'Zone / piste'}</label>
+          <input type="text" placeholder={pres ? 'ex. Salle A' : 'ex. Piste 1'}
+            value={form.zone}
+            onChange={(e) => setForm((f) => ({ ...f, zone: e.target.value }))} />
         </div>
-      ) : (
-        <div className="field-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          <div className="field">
-            <label>Heure de début</label>
-            <input type="time" value={form.heureDebut} min="07:00" max="19:00"
-              onChange={(e) => setForm((f) => ({ ...f, heureDebut: e.target.value }))} />
-          </div>
-          <div className="field">
-            <label>Heure de fin</label>
-            <input type="time" value={form.heureFin} min="07:00" max="19:00"
-              onChange={(e) => setForm((f) => ({ ...f, heureFin: e.target.value }))} />
-          </div>
-        </div>
-      )}
+      </div>
 
       {formError && (
         <div className="callout warn" style={{ marginTop: 8, marginBottom: 8 }}>
