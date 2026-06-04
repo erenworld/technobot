@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { Categorie, Team } from '../types/api';
@@ -173,6 +173,39 @@ function DesignForm({ team, epreuveId, juryId, onDone, onCancel }: FormProps) {
   const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingId, setExistingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase || !team.id) return;
+    supabase
+      .from('scores_design')
+      .select('*')
+      .eq('team_id', team.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          setExistingId(row.id);
+          setV({
+            access_interrupteur: row.access_interrupteur ?? 0,
+            refroid_carte: row.refroid_carte ?? 0,
+            acces_cable_prog: row.acces_cable_prog ?? 0,
+            facilite_piles: row.facilite_piles ?? 0,
+            solidite: row.solidite ?? 0,
+            homogeneite: row.homogeneite ?? 0,
+            oeuvre_originale: row.oeuvre_originale ?? 0,
+            qualite_visuelle: row.qualite_visuelle ?? 0,
+            dissimulation_pieces: row.dissimulation_pieces ?? 0,
+            qualite_affiche: row.qualite_affiche ?? 0,
+            qualite_echange: row.qualite_echange ?? 0,
+            bonus_suivi_ovale: row.bonus_suivi_ovale ?? false,
+            bonus_connecte: row.bonus_connecte ?? false,
+          });
+          setObs(row.observations ?? '');
+        }
+      });
+  }, [team.id]);
 
   const total = totalDesign(v);
 
@@ -180,7 +213,10 @@ function DesignForm({ team, epreuveId, juryId, onDone, onCancel }: FormProps) {
     if (!supabase) return;
     setSaving(true); setError(null);
     const payload = { ...v, team_id: team.id, jury_id: juryId, total, observations: obs.trim() || null };
-    const { error: e } = await supabase.from('scores_design').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_design').update(payload).eq('id', existingId)
+      : supabase.from('scores_design').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -229,6 +265,32 @@ function PresentationCollegeForm({ team, juryId, onDone, onCancel }: FormProps) 
   const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingId, setExistingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase || !team.id) return;
+    supabase
+      .from('scores_presentation_colleges')
+      .select('*')
+      .eq('team_id', team.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          setExistingId(row.id);
+          setV({
+            aisance: row.aisance ?? 0,
+            langues: row.langues ?? 0,
+            contenu: row.contenu ?? 0,
+            outils: row.outils ?? 0,
+            bonus_suivi_ovale: row.bonus_suivi_ovale ?? false,
+            bonus_connecte: row.bonus_connecte ?? false,
+          });
+          setObs(row.observations ?? '');
+        }
+      });
+  }, [team.id]);
 
   const total = totalPresentationCollege(v);
 
@@ -236,7 +298,10 @@ function PresentationCollegeForm({ team, juryId, onDone, onCancel }: FormProps) 
     if (!supabase) return;
     setSaving(true); setError(null);
     const payload = { ...v, team_id: team.id, jury_id: juryId, total, observations: obs.trim() || null };
-    const { error: e } = await supabase.from('scores_presentation_colleges').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_presentation_colleges').update(payload).eq('id', existingId)
+      : supabase.from('scores_presentation_colleges').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -273,6 +338,33 @@ function PresentationLyceeForm({ team, juryId, onDone, onCancel }: FormProps) {
   const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingId, setExistingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase || !team.id) return;
+    supabase
+      .from('scores_presentation_lycees')
+      .select('*')
+      .eq('team_id', team.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          setExistingId(row.id);
+          setV({
+            repartition_temps_parole: row.repartition_temps_parole ?? 0,
+            qualite_visuel_presentation: row.qualite_visuel_presentation ?? 0,
+            justesse_technique: row.justesse_technique ?? 0,
+            competences_linguistiques: row.competences_linguistiques ?? 0,
+            vocabulaire_technique: row.vocabulaire_technique ?? 0,
+            dossier_technique_lv: row.dossier_technique_lv ?? 0,
+            echanges_techniques: row.echanges_techniques ?? 0,
+          });
+          setObs(row.observations ?? '');
+        }
+      });
+  }, [team.id]);
 
   const total = totalPresentationLycee(v);
 
@@ -280,7 +372,10 @@ function PresentationLyceeForm({ team, juryId, onDone, onCancel }: FormProps) {
     if (!supabase) return;
     setSaving(true); setError(null);
     const payload = { ...v, team_id: team.id, jury_id: juryId, total, observations: obs.trim() || null };
-    const { error: e } = await supabase.from('scores_presentation_lycees').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_presentation_lycees').update(payload).eq('id', existingId)
+      : supabase.from('scores_presentation_lycees').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -318,6 +413,35 @@ function SuiviLigneForm({ team, juryId, onDone, onCancel }: FormProps) {
   const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingId, setExistingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase || !team.id) return;
+    supabase
+      .from('scores_suivi_ligne')
+      .select('*')
+      .eq('team_id', team.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          setExistingId(row.id);
+          setV({
+            distance_pct: row.distance_pct ?? 0,
+            parcours_fini: row.parcours_fini ?? false,
+            temps_secondes: row.temps_secondes ?? 0,
+            bonus_trace_1: row.bonus_trace_1 ?? false,
+            bonus_trace_2: row.bonus_trace_2 ?? false,
+            bonus_trace_3: row.bonus_trace_3 ?? false,
+            bonus_trace_4: row.bonus_trace_4 ?? false,
+            bonus_trace_5: row.bonus_trace_5 ?? false,
+            bonus_trace_6: row.bonus_trace_6 ?? false,
+          });
+          setObs(row.observations ?? '');
+        }
+      });
+  }, [team.id]);
 
   const calcul = v.temps_secondes > 0 ? parseFloat((500 / v.temps_secondes).toFixed(3)) : 0;
   const total = totalSuiviLigne(v);
@@ -329,7 +453,10 @@ function SuiviLigneForm({ team, juryId, onDone, onCancel }: FormProps) {
       ...v, team_id: team.id, jury_id: juryId,
       calcul_500_temps: calcul, total, observations: obs.trim() || null,
     };
-    const { error: e } = await supabase.from('scores_suivi_ligne').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_suivi_ligne').update(payload).eq('id', existingId)
+      : supabase.from('scores_suivi_ligne').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -380,6 +507,26 @@ function ClassementForm({
   const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingId, setExistingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase || !team.id || !epreuveId) return;
+    supabase
+      .from('scores_classement')
+      .select('*')
+      .eq('team_id', team.id)
+      .eq('epreuve_id', epreuveId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const row = data[0];
+          setExistingId(row.id);
+          setRang(row.rang);
+          setObs(row.observations ?? '');
+        }
+      });
+  }, [team.id, epreuveId]);
 
   const points = grid[rang] ?? 0;
 
@@ -390,7 +537,10 @@ function ClassementForm({
       team_id: team.id, epreuve_id: epreuveId, jury_id: juryId,
       rang, points, observations: obs.trim() || null,
     };
-    const { error: e } = await supabase.from('scores_classement').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_classement').update(payload).eq('id', existingId)
+      : supabase.from('scores_classement').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
