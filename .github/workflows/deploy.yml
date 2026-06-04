@@ -10,13 +10,16 @@ jobs:
 
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: 57.129.100.131
-          username: debian
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd ~/technobot
-            git pull origin main
-            sudo docker compose -f docker-compose.prod.yml up --build -d
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 57.129.100.131 >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key debian@57.129.100.131 "
+            cd ~/technobot &&
+            git pull origin main &&
+            sudo docker compose -f docker-compose.prod.yml up --build -d &&
             sudo docker image prune -f
+          "
