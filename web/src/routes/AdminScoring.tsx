@@ -1,173 +1,122 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
-import { useTeams } from '../lib/useTeams';
-import { api } from '../lib/api';
-import {
-  SCORING_CONFIGS,
-  ScoreField,
-  ScoreGroup,
-  ScoringConfig,
-} from '../lib/scoring';
-import { Team } from '../types/api';
+import { Categorie, Epreuve, Team } from '../types/api';
+import { AdminScoringForm } from './AdminScoringForm';
 
 /**
- * Console de notation — 3 étapes (épreuve → groupe → grille).
- *
- * Rendu sans Nav/Footer/page-head : ces éléments sont fournis par AdminPage
- * (qui gère aussi l'authentification et la sélection d'onglet).
+ * Console de notation — 3 étapes : épreuve → équipe → grille.
+ * Réécrit sans scoring.ts (supprimé). Utilise AdminScoringForm pour la grille.
  */
 
-type Values = Record<string, number | boolean>;
+type EpreuveChoice = {
+  epreuveType: string;
+  categorie: Categorie;
+  label: string;
+  tag: string;
+  desc: string;
+};
 
-const STEPS = [
-  { num: '01', name: 'Épreuve', desc: 'Grille de notation' },
-  { num: '02', name: 'Groupe', desc: 'Équipe à évaluer' },
-  { num: '03', name: 'Notation', desc: 'Saisie et envoi' },
+const EPREUVE_CHOICES: EpreuveChoice[] = [
+  { epreuveType: 'design', categorie: 'college', label: 'Design', tag: 'Collèges', desc: 'Ergonomie, finition, originalité du robot.' },
+  { epreuveType: 'presentation_projet', categorie: 'college', label: 'Présentation de projet', tag: 'Collèges', desc: 'Soutenance orale — aisance, contenu, langues, outils.' },
+  { epreuveType: 'presentation_projet', categorie: 'lycee', label: 'Présentation SUMO', tag: 'Lycées', desc: 'Présentation en langue vivante — 7 critères.' },
+  { epreuveType: 'suivi_ligne', categorie: 'college', label: 'Suivi de ligne', tag: 'Collèges', desc: 'Parcours chronométré + 6 pistes bonus.' },
+  { epreuveType: 'formule_robot', categorie: 'college', label: 'Formule Robot', tag: 'Collèges', desc: 'Classement par place — grille de points officielle.' },
+  { epreuveType: 'sumo', categorie: 'lycee', label: 'Sumo — rencontres', tag: 'Lycées', desc: 'Classement sumo lycée — ex-aequo possible après la 4e place.' },
 ];
 
-function initialValues(config: ScoringConfig): Values {
-  const values: Values = {};
-  for (const group of config.groups) {
-    for (const field of group.fields) {
-      if (field.kind === 'grade') values[field.key] = 0;
-      else if (field.kind === 'bool') values[field.key] = false;
-      else if (field.kind === 'int') values[field.key] = field.min;
-      else values[field.key] = 0;
-    }
-  }
-  return values;
-}
-
-function chunkPairs<T>(items: T[]): T[][] {
-  const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
-  return rows;
-}
-
-function gradeTotal(config: ScoringConfig, values: Values): number {
-  let total = 0;
-  for (const group of config.groups) {
-    for (const field of group.fields) {
-      if (field.kind === 'grade') total += Number(values[field.key] ?? 0);
-    }
-  }
-  return total;
-}
+const STEPS = [
+  { num: '01', name: 'Épreuve', desc: 'Type de grille' },
+  { num: '02', name: 'Équipe', desc: 'Robot à évaluer' },
+  { num: '03', name: 'Notation', desc: 'Saisie et envoi' },
+];
 
 export function AdminScoring() {
   const { session, profile } = useAuth();
 
   const [step, setStep] = useState(1);
-  const [config, setConfig] = useState<ScoringConfig | null>(null);
+  const [choice, setChoice] = useState<EpreuveChoice | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
-  const [values, setValues] = useState<Values>({});
-  const [observations, setObservations] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
   const [done, setDone] = useState(false);
 
-  const teamsState = useTeams(config ? config.teamFilter : null);
-
-  const total = useMemo(
-    () => (config ? gradeTotal(config, values) : 0),
-    [config, values],
-  );
+  // Find the matching epreuve_id from epreuves table (needed by AdminScoringForm)
+  const [epreuveId, setEpreuveId] = useState('');
 
   const juryLabel = profile
     ? `${profile.prenom} ${profile.nom}`.trim() || profile.email
     : session?.user?.email ?? 'Non connecté';
 
-  const selectConfig = (next: ScoringConfig) => {
-    setConfig(next);
-    setValues(initialValues(next));
+  // Load teams when choice is set
+  useEffect(() => {
+    if (!choice || !supabase) return;
+    setLoadingTeams(true);
     setTeam(null);
-    setError(null);
+    supabase.from('teams')
+      .select('*')
+      .eq('epreuve', choice.epreuveType as Epreuve)
+      .eq('categorie', choice.categorie)
+      .order('immatriculation', { ascending: true })
+      .then(({ data }) => {
+        setTeams((data ?? []) as Team[]);
+        setLoadingTeams(false);
+      });
+  }, [choice]);
+
+  // Look up epreuve_id when choice + team are set
+  useEffect(() => {
+    if (!choice || !team || !supabase) return;
+    supabase.from('epreuves')
+      .select('id')
+      .eq('type', choice.epreuveType)
+      .then(({ data }) => {
+        const byEdition = (data ?? []).find((e: { id: string }) => e);
+        setEpreuveId(byEdition?.id ?? '');
+      });
+  }, [choice, team]);
+
+  const filteredTeams = useMemo(() => {
+    return teams;
+  }, [teams]);
+
+  function selectChoice(c: EpreuveChoice) {
+    setChoice(c);
     setStep(2);
-  };
-
-  const selectTeam = (next: Team) => {
-    setTeam(next);
-    setError(null);
-    setStep(3);
-  };
-
-  const setValue = (key: string, value: number | boolean) => {
-    setValues((cur) => ({ ...cur, [key]: value }));
-  };
-
-  const reset = () => {
-    setStep(1);
-    setConfig(null);
-    setTeam(null);
-    setValues({});
-    setObservations('');
-    setError(null);
     setDone(false);
-  };
+  }
 
-  const canAdvance =
-    (step === 1 && !!config) || (step === 2 && !!team) || step === 3;
+  function selectTeam(t: Team) {
+    setTeam(t);
+    setStep(3);
+  }
 
-  const next = () => {
-    if (step === 1 && config) setStep(2);
-    else if (step === 2 && team) setStep(3);
-    else if (step === 3) void submit();
-  };
-
-  const prev = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
-  async function submit() {
-    if (!config || !team) return;
-    setSubmitting(true);
-    setError(null);
-
-    // Le back exige le `profile.id` (pas l'id Supabase Auth) — voir
-    // SupabaseAuthGuard qui résout le profil depuis auth_user_id.
-    const juryId = profile?.id ?? session?.user?.id ?? '00000000-0000-0000-0000-000000000000';
-    const payload: Record<string, unknown> = {
-      team_id: team.id,
-      jury_id: juryId,
-      ...values,
-    };
-    if (observations.trim()) payload.observations = observations.trim();
-
-    try {
-      await api.scores.create(config.endpoint, payload);
-      setDone(true);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Échec de l'envoi de la note.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
+  function reset() {
+    setStep(1);
+    setChoice(null);
+    setTeam(null);
+    setTeams([]);
+    setEpreuveId('');
+    setDone(false);
   }
 
   return (
     <div className="form-layout">
       <aside className="stepper">
         <div className="stepper-label">// Étapes</div>
-
         {STEPS.map((s, i) => {
           const n = i + 1;
           const classes = ['step'];
           if (done) classes.push('done');
           else if (n === step) classes.push('active');
           else if (n < step) classes.push('done');
-          const reachable = !done && n <= step;
           return (
-            <div
-              key={s.num}
-              className={classes.join(' ')}
-              onClick={() => reachable && setStep(n)}
-              style={{ cursor: reachable ? 'pointer' : 'default' }}
-            >
-              <div className="step-num">
-                <span>{s.num}</span>
-              </div>
+            <div key={s.num} className={classes.join(' ')}
+              onClick={() => !done && n <= step && setStep(n)}
+              style={{ cursor: !done && n <= step ? 'pointer' : 'default' }}>
+              <div className="step-num"><span>{s.num}</span></div>
               <div>
                 <div className="step-name">{s.name}</div>
                 <div className="step-desc">{s.desc}</div>
@@ -175,35 +124,26 @@ export function AdminScoring() {
             </div>
           );
         })}
-
         <div className="sidebar-note">
           <h4>→ Jury connecté</h4>
           <p>
-            Notes envoyées au nom de <strong>{juryLabel}</strong>.
-            {profile?.role ? (
-              <>
-                {' '}· Rôle <strong>{profile.role}</strong>.
-              </>
-            ) : null}
+            Notes au nom de <strong>{juryLabel}</strong>
+            {profile?.role ? <> · <strong>{profile.role}</strong></> : null}.
           </p>
         </div>
       </aside>
 
       <main className="form-main">
-        {done && config && team ? (
+        {done && choice && team ? (
           <div className="success-screen active">
             <div className="success-icon">✓</div>
-            <h2>
-              Note <em>enregistrée</em>.
-            </h2>
+            <h2>Note <em>enregistrée</em>.</h2>
             <p>
-              La note de <strong>{team.immatriculation} · {team.nom_robot}</strong>{' '}
-              pour l'épreuve <strong>{config.title}</strong> a bien été envoyée
-              à l'API.
+              <strong>{team.immatriculation} · {team.nom_robot}</strong> — {choice.label}.
             </p>
             <div className="success-actions">
               <button type="button" className="btn btn-primary" onClick={reset}>
-                Noter un autre groupe
+                Noter un autre robot
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
@@ -211,33 +151,24 @@ export function AdminScoring() {
             </div>
           </div>
         ) : (
-          <form onSubmit={(e) => e.preventDefault()}>
-            {/* Étape 01 — épreuve */}
+          <>
+            {/* Étape 01 */}
             <div className={`form-section${step === 1 ? ' active' : ''}`}>
               <div className="form-section-head">
                 <div className="form-section-eyebrow">// Étape 01 sur 03</div>
                 <h2>L'épreuve à noter.</h2>
-                <p>
-                  Chaque épreuve a sa propre grille. Le choix détermine la
-                  liste des groupes proposée à l'étape suivante.
-                </p>
+                <p>Chaque épreuve a sa propre grille de notation.</p>
               </div>
-
               <div className="field-group-title">Grille de notation</div>
               <div className="event-picker">
-                {SCORING_CONFIGS.map((c) => (
-                  <label key={c.endpoint} className="event-pick">
-                    <input
-                      type="radio"
-                      name="scoring-config"
-                      checked={config?.endpoint === c.endpoint}
-                      onChange={() => selectConfig(c)}
-                    />
+                {EPREUVE_CHOICES.map((c, i) => (
+                  <label key={i} className="event-pick">
+                    <input type="radio" name="epreuve-choice"
+                      checked={choice?.epreuveType === c.epreuveType && choice?.categorie === c.categorie}
+                      onChange={() => selectChoice(c)} />
                     <div className="event-pick-card">
-                      <div className="event-pick-num">
-                        {c.num} · {c.tag}
-                      </div>
-                      <h4>{c.title}</h4>
+                      <div className="event-pick-num">{String(i + 1).padStart(2, '0')} · {c.tag}</div>
+                      <h4>{c.label}</h4>
                       <p>{c.desc}</p>
                     </div>
                   </label>
@@ -245,279 +176,95 @@ export function AdminScoring() {
               </div>
             </div>
 
-            {/* Étape 02 — groupe */}
+            {/* Étape 02 */}
             <div className={`form-section${step === 2 ? ' active' : ''}`}>
               <div className="form-section-head">
                 <div className="form-section-eyebrow">// Étape 02 sur 03</div>
-                <h2>Le groupe qui passe.</h2>
-                <p>
-                  {config
-                    ? `Groupes inscrits en « ${config.title} ».`
-                    : 'Choisissez d\'abord une épreuve.'}
-                </p>
+                <h2>L'équipe qui passe.</h2>
+                <p>{choice ? `Équipes inscrites en « ${choice.label} » (${choice.categorie}).` : 'Choisissez d\'abord une épreuve.'}</p>
               </div>
-
-              {config && teamsState.loading && (
+              {loadingTeams && (
                 <div className="callout">
                   <div className="callout-label">→ Chargement</div>
-                  Récupération des groupes…
+                  Récupération des équipes…
                 </div>
               )}
-
-              {config && !teamsState.loading && teamsState.usingMock && (
-                <div className="callout new">
-                  <div className="callout-label">→ Données de démonstration</div>
-                  L'API n'a renvoyé aucun groupe (base non peuplée ou
-                  inaccessible). Liste de démonstration affichée — l'envoi
-                  d'une note échouera tant que le back n'expose pas de vraies
-                  équipes.
+              {!loadingTeams && filteredTeams.length === 0 && (
+                <div className="callout warn">
+                  <div className="callout-label">→ Aucune équipe</div>
+                  Aucune équipe inscrite pour cette épreuve.
                 </div>
               )}
-
-              {config && !teamsState.loading && teamsState.teams.length > 0 && (
+              {!loadingTeams && filteredTeams.length > 0 && (
                 <>
-                  <div className="field-group-title">
-                    Groupes ({teamsState.teams.length})
-                  </div>
+                  <div className="field-group-title">Équipes ({filteredTeams.length})</div>
                   <div className="event-picker">
-                    {teamsState.teams.map((t) => (
+                    {filteredTeams.map((t) => (
                       <label key={t.id} className="event-pick">
-                        <input
-                          type="radio"
-                          name="team"
+                        <input type="radio" name="team"
                           checked={team?.id === t.id}
-                          onChange={() => selectTeam(t)}
-                        />
+                          onChange={() => selectTeam(t)} />
                         <div className="event-pick-card">
-                          <div className="event-pick-num">
-                            {t.immatriculation} · {t.statut.replace(/_/g, ' ')}
-                          </div>
-                          <h4>{t.nom_robot}</h4>
-                          <p>{t.etablissement}</p>
+                          <div className="event-pick-num">{t.immatriculation} · {t.statut.replace(/_/g, ' ')}</div>
+                          <h4>{t.nom_robot || '—'}</h4>
+                          <p>{t.etablissement_id ?? '—'}</p>
                         </div>
                       </label>
                     ))}
                   </div>
                 </>
               )}
-
-              {config && !teamsState.loading && teamsState.teams.length === 0 && (
-                <div className="callout warn">
-                  <div className="callout-label">→ Aucun groupe</div>
-                  Aucun groupe inscrit pour cette épreuve.
-                </div>
-              )}
+              <div className="form-nav" style={{ marginTop: 24 }}>
+                <button type="button" className="btn btn-ghost prev" onClick={() => setStep(1)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M19 12H5M11 6L5 12l6 6" /></svg>
+                  Précédent
+                </button>
+                <div className="step-indicator">Étape <strong>2</strong> / 3</div>
+                <button type="button" className="btn btn-primary next" disabled={!team} onClick={() => setStep(3)}>
+                  Suivant
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </button>
+              </div>
             </div>
 
-            {/* Étape 03 — notation */}
+            {/* Étape 03 */}
             <div className={`form-section${step === 3 ? ' active' : ''}`}>
               <div className="form-section-head">
                 <div className="form-section-eyebrow">// Étape 03 sur 03</div>
                 <h2>La grille de notation.</h2>
-                <p>
-                  {config && team
-                    ? `${config.title} — ${team.immatriculation} · ${team.nom_robot}.`
-                    : 'Choisissez une épreuve et un groupe.'}
-                </p>
+                {choice && team && (
+                  <p>{choice.label} — {team.immatriculation} · {team.nom_robot}.</p>
+                )}
               </div>
-
-              {config &&
-                config.groups.map((group) => (
-                  <ScoreGroupFields
-                    key={group.title}
-                    group={group}
-                    values={values}
-                    onChange={setValue}
-                  />
-                ))}
-
-              {config && (
-                <>
-                  <div className="field-group-title">Observations</div>
-                  <div className="field-row single">
-                    <div className="field">
-                      <label htmlFor="observations">
-                        Remarques du jury (optionnel)
-                      </label>
-                      <textarea
-                        id="observations"
-                        placeholder="Points forts, incidents de passage…"
-                        value={observations}
-                        onChange={(e) => setObservations(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="summary" style={{ marginTop: 28 }}>
-                    <div className="summary-row">
-                      <span className="key">Épreuve</span>
-                      <span className="val">{config.title}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="key">Groupe</span>
-                      <span className="val">
-                        {team
-                          ? `${team.immatriculation} · ${team.nom_robot}`
-                          : '—'}
-                      </span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="key">Total critères</span>
-                      <span className="val">{total} pts</span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="key">Jury</span>
-                      <span className="val">{juryLabel}</span>
-                    </div>
-                  </div>
-                </>
-              )}
 
               {!profile && (
-                <div className="callout warn" style={{ marginTop: 16 }}>
+                <div className="callout warn" style={{ marginBottom: 16 }}>
                   <div className="callout-label">→ Profil introuvable</div>
-                  Aucun profil n'est associé à ton compte côté back. L'envoi
-                  d'une note échouera tant que ton `auth_user_id` n'est pas
-                  rattaché à un profil jury/admin/organisateur.{' '}
-                  <Link to="/login">Se reconnecter</Link>
+                  Aucun profil associé. L'envoi échouera. <Link to="/login">Se reconnecter</Link>
                 </div>
               )}
 
-              {error && (
-                <div className="callout warn" style={{ marginTop: 16 }}>
-                  <div className="callout-label">→ Erreur</div>
-                  {error}
-                </div>
+              {choice && team && (
+                <AdminScoringForm
+                  team={team}
+                  epreuveType={choice.epreuveType}
+                  epreuveId={epreuveId}
+                  onDone={() => setDone(true)}
+                  onCancel={() => setStep(2)}
+                />
               )}
-            </div>
 
-            <div className="form-nav">
-              <button
-                type="button"
-                className="btn btn-ghost prev"
-                onClick={prev}
-                disabled={step === 1 || submitting}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path d="M19 12H5M11 6L5 12l6 6" />
-                </svg>
-                Précédent
-              </button>
-              <div className="step-indicator">
-                Étape <strong>{step}</strong> / 3
+              <div className="form-nav" style={{ marginTop: 24 }}>
+                <button type="button" className="btn btn-ghost prev" onClick={() => setStep(2)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M19 12H5M11 6L5 12l6 6" /></svg>
+                  Précédent
+                </button>
+                <div className="step-indicator">Étape <strong>3</strong> / 3</div>
               </div>
-              <button
-                type="button"
-                className="btn btn-primary next"
-                onClick={next}
-                disabled={!canAdvance || submitting}
-              >
-                {step === 3
-                  ? submitting
-                    ? 'Envoi…'
-                    : 'Envoyer la note'
-                  : 'Suivant'}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </button>
             </div>
-          </form>
+          </>
         )}
       </main>
-    </div>
-  );
-}
-
-function ScoreGroupFields({
-  group,
-  values,
-  onChange,
-}: {
-  group: ScoreGroup;
-  values: Values;
-  onChange: (key: string, value: number | boolean) => void;
-}) {
-  const inputs = group.fields.filter((f) => f.kind !== 'bool');
-  const bools = group.fields.filter((f) => f.kind === 'bool');
-
-  return (
-    <>
-      <div className="field-group-title">{group.title}</div>
-
-      {chunkPairs(inputs).map((row, i) => (
-        <div key={i} className={`field-row${row.length === 1 ? ' single' : ''}`}>
-          {row.map((field) => (
-            <InputField
-              key={field.key}
-              field={field}
-              value={values[field.key]}
-              onChange={onChange}
-            />
-          ))}
-        </div>
-      ))}
-
-      {bools.map((field) => (
-        <label key={field.key} className="check">
-          <input
-            type="checkbox"
-            checked={Boolean(values[field.key])}
-            onChange={(e) => onChange(field.key, e.target.checked)}
-          />
-          <div className="check-txt">{field.label}</div>
-        </label>
-      ))}
-    </>
-  );
-}
-
-function InputField({
-  field,
-  value,
-  onChange,
-}: {
-  field: ScoreField;
-  value: number | boolean | undefined;
-  onChange: (key: string, value: number | boolean) => void;
-}) {
-  if (field.kind === 'grade') {
-    return (
-      <div className="field">
-        <label htmlFor={field.key}>
-          {field.label}{' '}
-          <span style={{ color: 'var(--muted)' }}>/ {field.max}</span>
-        </label>
-        <select
-          id={field.key}
-          value={String(Number(value ?? 0))}
-          onChange={(e) => onChange(field.key, Number(e.target.value))}
-        >
-          {Array.from({ length: field.max + 1 }, (_, n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </div>
-    );
-  }
-
-  const suffix = 'suffix' in field && field.suffix ? ` (${field.suffix})` : '';
-  return (
-    <div className="field">
-      <label htmlFor={field.key}>
-        {field.label}
-        {suffix}
-      </label>
-      <input
-        id={field.key}
-        type="number"
-        min={field.kind === 'int' ? field.min : 0}
-        max={field.kind === 'int' ? field.max : undefined}
-        value={String(Number(value ?? 0))}
-        onChange={(e) => onChange(field.key, Number(e.target.value))}
-      />
     </div>
   );
 }

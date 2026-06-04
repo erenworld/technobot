@@ -114,13 +114,27 @@ export type Classements = {
 
 export type PlanningSlot = {
   id: string;
-  edition_id: string;
-  team_id: string;
-  epreuve: Epreuve;
-  zone: string;
-  heure_debut: string;
-  heure_fin: string;
-  statut?: string;
+  team_id: string | null;
+  epreuve_id: string | null;
+  poule?: string | null;
+  jury_vestiaire?: string | null;
+  heure_presentation?: string | null;
+  heure_debut_rencontres?: string | null;
+  heure_fin_rencontres?: string | null;
+  zone_rencontres?: string | null;
+  salle_presentation?: string | null;
+  observations?: string | null;
+  created_at?: string | null;
+};
+
+export type EpreuveDB = {
+  id: string;
+  edition_id: string | null;
+  nom: string;
+  type: string;
+  categorie: string | null;
+  description: string | null;
+  created_at: string | null;
 };
 
 export type MatchSumoStatut = 'a_venir' | 'en_cours' | 'termine';

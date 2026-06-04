@@ -93,6 +93,12 @@ export const api = {
   planning: {
     get: (editionId: string) =>
       request<PlanningSlot[]>(`/api/planning/${editionId}`),
+    create: (payload: Omit<PlanningSlot, 'id' | 'edition_id'> & { edition_id?: string }) =>
+      request<PlanningSlot>('/api/planning', { method: 'POST', body: JSON.stringify(payload) }),
+    update: (id: string, payload: Partial<Omit<PlanningSlot, 'id'>>) =>
+      request<PlanningSlot>(`/api/planning/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    delete: (id: string) =>
+      request<void>(`/api/planning/${id}`, { method: 'DELETE' }),
   },
 
   matchsSumo: {

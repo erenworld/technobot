@@ -3,32 +3,29 @@ import { Link } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { FooterCompact } from '../components/Footer';
 import { useAuth } from '../lib/auth';
-import { AdminScoring } from './AdminScoring';
 import { AdminTeams } from './AdminTeams';
+import { AdminPlanning } from './AdminPlanning';
+import { AdminClassement } from './AdminClassement';
 
-/**
- * Coquille de la console admin : Nav, en-tête, barre d'onglets et footer.
- * Le contenu réel est délégué aux sous-pages (Notation / Équipes).
- *
- * La protection d'accès est posée au niveau du routeur (RequireAuth dans
- * main.tsx) ; cette page suppose donc qu'un utilisateur est connecté.
- */
-
-type Tab = 'scoring' | 'teams';
+type Tab = 'teams' | 'planning' | 'classement';
 
 const TAB_LABELS: Record<Tab, { title: string; sub: string }> = {
-  scoring: {
-    title: 'Notation des groupes',
-    sub: 'Console de saisie des notes pour le jour de la compétition.',
-  },
   teams: {
     title: 'Équipes inscrites',
     sub: 'Suivi des équipes enregistrées et de leur statut.',
   },
+  planning: {
+    title: 'Planning du 5 juin',
+    sub: "Gestion des créneaux horaires et notation par type d'épreuve.",
+  },
+  classement: {
+    title: 'Classements',
+    sub: 'Classements par épreuve et général — collèges et lycées.',
+  },
 };
 
 export function AdminPage() {
-  const [tab, setTab] = useState<Tab>('scoring');
+  const [tab, setTab] = useState<Tab>('planning');
   const { profile, signOut } = useAuth();
 
   const userLabel = profile
@@ -71,33 +68,31 @@ export function AdminPage() {
           .
         </p>
 
-        <div
-          className="events-tabs"
-          role="tablist"
-          style={{ marginTop: 24 }}
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'scoring'}
-            className={tab === 'scoring' ? 'active' : ''}
-            onClick={() => setTab('scoring')}
-          >
-            Notation
-          </button>
-          <button
-            type="button"
-            role="tab"
+        <div className="events-tabs" role="tablist" style={{ marginTop: 24 }}>
+          <button type="button" role="tab"
             aria-selected={tab === 'teams'}
             className={tab === 'teams' ? 'active' : ''}
-            onClick={() => setTab('teams')}
-          >
+            onClick={() => setTab('teams')}>
             Équipes inscrites
+          </button>
+          <button type="button" role="tab"
+            aria-selected={tab === 'planning'}
+            className={tab === 'planning' ? 'active' : ''}
+            onClick={() => setTab('planning')}>
+            Planning/Notation
+          </button>
+          <button type="button" role="tab"
+            aria-selected={tab === 'classement'}
+            className={tab === 'classement' ? 'active' : ''}
+            onClick={() => setTab('classement')}>
+            Classements
           </button>
         </div>
       </header>
 
-      {tab === 'scoring' ? <AdminScoring /> : <AdminTeams />}
+      {tab === 'teams' && <AdminTeams />}
+      {tab === 'planning' && <AdminPlanning />}
+      {tab === 'classement' && <AdminClassement />}
 
       <FooterCompact />
     </>
