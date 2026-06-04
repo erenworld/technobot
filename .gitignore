@@ -3,6 +3,8 @@ node_modules/
 
 # Build output
 coverage/
+dist/
+web/dist/
 
 # Environment files
 .env
@@ -35,3 +37,12 @@ prisma/dev.db-journal
 .vscode/
 *.swp
 *.swo
+
+# Scripts
+scripts/
+
+#env
+.env
+.env.example
+
+.claude
