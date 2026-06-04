@@ -165,11 +165,6 @@ export function AdminTeams() {
                 color="var(--green)"
               />
               <StatCard
-                label="Validés"
-                value={stats.byStatut.valide}
-                color="var(--cyan)"
-              />
-              <StatCard
                 label="En attente"
                 value={stats.byStatut.inscrit}
                 color="var(--muted)"
@@ -545,7 +540,7 @@ function TeamCardBody({
 }) {
   const [nomRobot, setNomRobot] = useState<string>(team.nom_robot ?? '');
   const [statut, setStatut] = useState<ControleTechniquePayload['statut']>(
-    team.statut === 'inscrit' ? 'valide' : team.statut,
+    team.statut === 'disqualifie' ? 'disqualifie' : 'controle_technique_ok',
   );
   const [notes, setNotes] = useState<string>(team.notes_technique ?? '');
   const [saving, setSaving] = useState(false);
@@ -715,7 +710,6 @@ function TeamCardBody({
               setStatut(e.target.value as ControleTechniquePayload['statut'])
             }
           >
-            <option value="valide">Validé</option>
             <option value="controle_technique_ok">CT validé</option>
             <option value="disqualifie">Disqualifié</option>
           </select>
@@ -774,7 +768,7 @@ function TeamCardBody({
               className="btn btn-ghost"
               onClick={() => {
                 setNomRobot(team.nom_robot ?? '');
-                setStatut(team.statut === 'inscrit' ? 'valide' : team.statut);
+                setStatut(team.statut === 'disqualifie' ? 'disqualifie' : 'controle_technique_ok');
                 setNotes(team.notes_technique ?? '');
                 setSaveError(null);
               }}

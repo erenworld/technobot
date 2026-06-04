@@ -153,17 +153,10 @@ export function ScoreboardPage() {
     <>
       {/* Bande supérieure */}
       <div className="topstrip">
-        <div className="topstrip-left">
-          <span className="live-indicator"><span className="live-dot" />EN DIRECT</span>
-          <span>Gymnase Mermoz · Yutz</span>
-        </div>
         <div className="topstrip-center mono">
           <span>{pad(now.getHours())}</span><span className="sep">:</span>
           <span>{pad(now.getMinutes())}</span><span className="sep">:</span>
           <span>{pad(now.getSeconds())}</span>
-        </div>
-        <div className="topstrip-right">
-          <span>Édition 15</span><span className="dash" /><span>05.06.2026</span>
         </div>
       </div>
 
