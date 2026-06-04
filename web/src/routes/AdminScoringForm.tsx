@@ -325,7 +325,10 @@ function DesignForm({ team, epreuveId, juryId, onDone, onCancel }: FormProps) {
       observations: obs.trim() || null,
       // `total` est une colonne générée par le DB — ne pas l'envoyer
     };
-    const { error: e } = await supabase.from('scores_design').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_design').update(payload).eq('id', existingId)
+      : supabase.from('scores_design').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -359,7 +362,7 @@ function DesignForm({ team, epreuveId, juryId, onDone, onCancel }: FormProps) {
       <BoolCheck label="Robot connecté (+10 pts)" checked={v.bonus_connecte} onChange={(b) => setV((p) => ({ ...p, bonus_connecte: b }))} />
 
       <ObsField value={obs} onChange={setObs} />
-      <FormFooter total={total} maxTotal={140} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} />
+      <FormFooter total={total} maxTotal={140} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} isUpdate={!!existingId} />
     </>
   );
 }
@@ -412,7 +415,10 @@ function PresentationCollegeForm({ team, juryId, onDone, onCancel }: FormProps) 
       bonus_suivi_ovale: v.bonus_suivi_ovale, bonus_connecte: v.bonus_connecte,
       observations: obs.trim() || null,
     };
-    const { error: e } = await supabase.from('scores_presentation_colleges').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_presentation_colleges').update(payload).eq('id', existingId)
+      : supabase.from('scores_presentation_colleges').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -433,7 +439,7 @@ function PresentationCollegeForm({ team, juryId, onDone, onCancel }: FormProps) 
       <BoolCheck label="Robot connecté (+10 pts)" checked={v.bonus_connecte} onChange={(b) => setV((p) => ({ ...p, bonus_connecte: b }))} />
 
       <ObsField value={obs} onChange={setObs} />
-      <FormFooter total={total} maxTotal={110} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} />
+      <FormFooter total={total} maxTotal={110} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} isUpdate={!!existingId} />
     </>
   );
 }
@@ -493,7 +499,10 @@ function PresentationLyceeForm({ team, juryId, onDone, onCancel }: FormProps) {
       echanges_techniques: v.echanges_techniques,
       observations: obs.trim() || null,
     };
-    const { error: e } = await supabase.from('scores_presentation_lycees').insert(payload);
+    const query = existingId
+      ? supabase.from('scores_presentation_lycees').update(payload).eq('id', existingId)
+      : supabase.from('scores_presentation_lycees').insert(payload);
+    const { error: e } = await query;
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
 
@@ -515,7 +524,7 @@ function PresentationLyceeForm({ team, juryId, onDone, onCancel }: FormProps) {
       </div>
 
       <ObsField value={obs} onChange={setObs} />
-      <FormFooter total={total} maxTotal={150} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} />
+      <FormFooter total={total} maxTotal={150} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} isUpdate={!!existingId} />
     </>
   );
 }
@@ -618,7 +627,7 @@ function SuiviLigneForm({ team, juryId, onDone, onCancel }: FormProps) {
       })}
 
       <ObsField value={obs} onChange={setObs} />
-      <FormFooter total={total} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} />
+      <FormFooter total={total} saving={saving} error={error} onSubmit={submit} onCancel={onCancel} isUpdate={!!existingId} />
     </>
   );
 }
@@ -751,9 +760,9 @@ function ObsField({ value, onChange }: { value: string; onChange: (s: string) =>
   );
 }
 
-function FormFooter({ total, maxTotal, saving, error, onSubmit, onCancel }: {
+function FormFooter({ total, maxTotal, saving, error, onSubmit, onCancel, isUpdate }: {
   total: number; maxTotal?: number; saving: boolean; error: string | null;
-  onSubmit: () => void; onCancel?: () => void;
+  onSubmit: () => void; onCancel?: () => void; isUpdate?: boolean;
 }) {
   return (
     <>
@@ -772,7 +781,7 @@ function FormFooter({ total, maxTotal, saving, error, onSubmit, onCancel }: {
       )}
       <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
         <button type="button" className="btn btn-primary" style={{ padding: '10px 20px', fontSize: 14 }} disabled={saving} onClick={onSubmit}>
-          {saving ? 'Envoi…' : 'Enregistrer la note'}
+          {saving ? 'Envoi…' : isUpdate ? 'Mettre à jour la note' : 'Enregistrer la note'}
         </button>
         {onCancel && (
           <button type="button" className="btn btn-ghost" style={{ padding: '10px 20px', fontSize: 14 }} disabled={saving} onClick={onCancel}>
