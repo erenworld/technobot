@@ -19,7 +19,7 @@ const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
   { path: '/reglement', element: <ReglementPage /> },
   { path: '/inscription', element: <InscriptionPage /> },
-  { path: '/scoreboard', element: <ScoreboardPage /> },
+  { path: '/planning', element: <ScoreboardPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/cgu-confidentialite', element: <LegalPage /> },
   {

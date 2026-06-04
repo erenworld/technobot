@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { Categorie, Team } from '../types/api';
@@ -84,6 +84,51 @@ type SuiviLigneValues = {
 
 type ClassementValues = { rang: number };
 
+/* ======================== Helpers table ======================== */
+
+function tableForType(t: ScoreType): string {
+  switch (t) {
+    case 'design': return 'scores_design';
+    case 'presentation_college': return 'scores_presentation_colleges';
+    case 'presentation_lycee': return 'scores_presentation_lycees';
+    case 'suivi_ligne': return 'scores_suivi_ligne';
+    case 'formule_robot':
+    case 'sumo_lycee': return 'scores_classement';
+  }
+}
+
+type ExistingScore = { id: string; label: string; createdAt: string | null };
+
+async function fetchExisting(scoreType: ScoreType, teamId: string, epreuveId: string): Promise<ExistingScore[]> {
+  if (!supabase) return [];
+  const table = tableForType(scoreType);
+  const isClassement = scoreType === 'formule_robot' || scoreType === 'sumo_lycee';
+
+  const query = supabase
+    .from(table)
+    .select(isClassement ? 'id, rang, points, created_at' : 'id, total, created_at')
+    .eq('team_id', teamId)
+    .order('created_at', { ascending: false });
+
+  if (isClassement) query.eq('epreuve_id', epreuveId);
+
+  const { data } = await query;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((r: any) => ({
+    id: String(r.id),
+    label: isClassement
+      ? `${r.rang}e place — ${r.points} pts`
+      : `Total : ${typeof r.total === 'number' ? Math.round(r.total * 100) / 100 : r.total} pts`,
+    createdAt: (r.created_at ?? null) as string | null,
+  }));
+}
+
+function fmtDate(iso: string | null) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return `${d.toLocaleDateString('fr-FR')} ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
 /* ======================== Calculs de totaux ======================== */
 
 function totalDesign(v: DesignValues): number {
@@ -129,6 +174,26 @@ export function AdminScoringForm({
   const { profile } = useAuth();
   const scoreType = getScoreType(epreuveType, team.categorie);
 
+  const [existing, setExisting] = useState<ExistingScore[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!scoreType) return;
+    fetchExisting(scoreType, team.id, epreuveId).then(setExisting);
+  }, [scoreType, team.id, epreuveId]);
+
+  async function handleDelete(id: string) {
+    if (!supabase || !scoreType) return;
+    setDeletingId(id);
+    const { error } = await supabase.from(tableForType(scoreType)).delete().eq('id', id);
+    if (!error) {
+      setExisting((cur) => cur.filter((s) => s.id !== id));
+      setConfirmId(null);
+    }
+    setDeletingId(null);
+  }
+
   if (!scoreType) {
     return (
       <div className="callout warn">
@@ -138,9 +203,14 @@ export function AdminScoringForm({
     );
   }
 
-  const juryId = profile?.id ?? '00000000-0000-0000-0000-000000000000';
+  const juryId = profile?.id ?? null;
 
-  const commonProps = { team, epreuveId, juryId, onDone, onCancel };
+  function onScoreSaved() {
+    fetchExisting(scoreType!, team.id, epreuveId).then(setExisting);
+    onDone();
+  }
+
+  const commonProps = { team, epreuveId, juryId, onDone: onScoreSaved, onCancel };
 
   return (
     <div style={{ borderTop: '2px solid var(--ink)', background: 'var(--cream)', padding: '20px 20px' }}>
@@ -150,6 +220,38 @@ export function AdminScoringForm({
       <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>
         {team.immatriculation} · {team.nom_robot || <em style={{ color: 'var(--muted)' }}>Sans nom</em>}
       </div>
+
+      {/* Notes existantes */}
+      {existing.length > 0 && (
+        <div style={{ marginBottom: 20, border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+          <div style={{ padding: '8px 14px', background: 'var(--cream-2)', fontFamily: 'var(--ff-mono)', fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)', borderBottom: '1px solid var(--line)' }}>
+            Notes enregistrées ({existing.length})
+          </div>
+          {existing.map((s) => (
+            <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: '1px solid var(--line)', background: 'var(--paper)' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label}</div>
+                <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)' }}>{fmtDate(s.createdAt)}</div>
+              </div>
+              {confirmId === s.id ? (
+                <>
+                  <span style={{ fontSize: 12, color: 'var(--red)' }}>Confirmer ?</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button type="button" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => setConfirmId(null)} disabled={deletingId === s.id}>Annuler</button>
+                    <button type="button" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12, color: 'var(--red)', borderColor: 'var(--red)' }} disabled={deletingId === s.id} onClick={() => handleDelete(s.id)}>
+                      {deletingId === s.id ? '…' : 'Supprimer'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <button type="button" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12, color: 'var(--red)', borderColor: 'var(--red)' }} onClick={() => setConfirmId(s.id)}>
+                  Supprimer
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {scoreType === 'design' && <DesignForm {...commonProps} />}
       {scoreType === 'presentation_college' && <PresentationCollegeForm {...commonProps} />}
@@ -179,7 +281,17 @@ function DesignForm({ team, epreuveId, juryId, onDone, onCancel }: FormProps) {
   async function submit() {
     if (!supabase) return;
     setSaving(true); setError(null);
-    const payload = { ...v, team_id: team.id, jury_id: juryId, total, observations: obs.trim() || null };
+    const payload = {
+      team_id: team.id, jury_id: juryId,
+      access_interrupteur: v.access_interrupteur, refroid_carte: v.refroid_carte,
+      acces_cable_prog: v.acces_cable_prog, facilite_piles: v.facilite_piles,
+      solidite: v.solidite, homogeneite: v.homogeneite, oeuvre_originale: v.oeuvre_originale,
+      qualite_visuelle: v.qualite_visuelle, dissimulation_pieces: v.dissimulation_pieces,
+      qualite_affiche: v.qualite_affiche, qualite_echange: v.qualite_echange,
+      bonus_suivi_ovale: v.bonus_suivi_ovale, bonus_connecte: v.bonus_connecte,
+      observations: obs.trim() || null,
+      // `total` est une colonne générée par le DB — ne pas l'envoyer
+    };
     const { error: e } = await supabase.from('scores_design').insert(payload);
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
@@ -235,7 +347,12 @@ function PresentationCollegeForm({ team, juryId, onDone, onCancel }: FormProps) 
   async function submit() {
     if (!supabase) return;
     setSaving(true); setError(null);
-    const payload = { ...v, team_id: team.id, jury_id: juryId, total, observations: obs.trim() || null };
+    const payload = {
+      team_id: team.id, jury_id: juryId,
+      aisance: v.aisance, langues: v.langues, contenu: v.contenu, outils: v.outils,
+      bonus_suivi_ovale: v.bonus_suivi_ovale, bonus_connecte: v.bonus_connecte,
+      observations: obs.trim() || null,
+    };
     const { error: e } = await supabase.from('scores_presentation_colleges').insert(payload);
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
@@ -279,7 +396,17 @@ function PresentationLyceeForm({ team, juryId, onDone, onCancel }: FormProps) {
   async function submit() {
     if (!supabase) return;
     setSaving(true); setError(null);
-    const payload = { ...v, team_id: team.id, jury_id: juryId, total, observations: obs.trim() || null };
+    const payload = {
+      team_id: team.id, jury_id: juryId,
+      repartition_temps_parole: v.repartition_temps_parole,
+      qualite_visuel_presentation: v.qualite_visuel_presentation,
+      justesse_technique: v.justesse_technique,
+      competences_linguistiques: v.competences_linguistiques,
+      vocabulaire_technique: v.vocabulaire_technique,
+      dossier_technique_lv: v.dossier_technique_lv,
+      echanges_techniques: v.echanges_techniques,
+      observations: obs.trim() || null,
+    };
     const { error: e } = await supabase.from('scores_presentation_lycees').insert(payload);
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
   }
@@ -326,8 +453,15 @@ function SuiviLigneForm({ team, juryId, onDone, onCancel }: FormProps) {
     if (!supabase) return;
     setSaving(true); setError(null);
     const payload = {
-      ...v, team_id: team.id, jury_id: juryId,
-      calcul_500_temps: calcul, total, observations: obs.trim() || null,
+      team_id: team.id, jury_id: juryId,
+      distance_pct: v.distance_pct,
+      parcours_fini: v.parcours_fini,
+      temps_secondes: v.temps_secondes || null,
+      // calcul_500_temps et total : colonnes générées par le DB, ne pas envoyer
+      bonus_trace_1: v.bonus_trace_1, bonus_trace_2: v.bonus_trace_2,
+      bonus_trace_3: v.bonus_trace_3, bonus_trace_4: v.bonus_trace_4,
+      bonus_trace_5: v.bonus_trace_5, bonus_trace_6: v.bonus_trace_6,
+      observations: obs.trim() || null,
     };
     const { error: e } = await supabase.from('scores_suivi_ligne').insert(payload);
     if (e) { setError(e.message); setSaving(false); } else { onDone(); }
@@ -431,7 +565,7 @@ function ClassementForm({
 type FormProps = {
   team: Team;
   epreuveId: string;
-  juryId: string;
+  juryId: string | null;
   onDone: () => void;
   onCancel?: () => void;
 };
