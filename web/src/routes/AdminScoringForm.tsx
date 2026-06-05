@@ -42,7 +42,7 @@ function getScoreType(epreuveType: string, categorie: Categorie): ScoreType | nu
   if (epreuveType === 'presentation_projet' && categorie === 'lycee') return 'presentation_lycee';
   if (epreuveType === 'suivi_ligne') return 'suivi_ligne';
   if (epreuveType === 'formule_robot') return 'formule_robot';
-  if (epreuveType === 'sumo' && categorie === 'lycee') return 'sumo_lycee';
+  if (epreuveType === 'sumo') return 'sumo_lycee';
   return null;
 }
 
