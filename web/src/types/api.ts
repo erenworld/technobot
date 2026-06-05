@@ -75,7 +75,7 @@ export type Etablissement = {
 };
 
 export type ControleTechniquePayload = {
-  statut: 'controle_technique_ok' | 'disqualifie';
+  statut: 'inscrit' | 'controle_technique_ok' | 'disqualifie';
   notes_technique?: string | null;
 };
 

@@ -540,7 +540,9 @@ function TeamCardBody({
 }) {
   const [nomRobot, setNomRobot] = useState<string>(team.nom_robot ?? '');
   const [statut, setStatut] = useState<ControleTechniquePayload['statut']>(
-    team.statut === 'disqualifie' ? 'disqualifie' : 'controle_technique_ok',
+    team.statut === 'disqualifie' ? 'disqualifie'
+    : team.statut === 'inscrit' ? 'inscrit'
+    : 'controle_technique_ok',
   );
   const [notes, setNotes] = useState<string>(team.notes_technique ?? '');
   const [saving, setSaving] = useState(false);
@@ -560,21 +562,22 @@ function TeamCardBody({
     try {
       const newNom = nomRobot.trim();
 
-      // Mise à jour nom_robot via Supabase si modifié
-      if (newNom !== (team.nom_robot ?? '') && supabase) {
-        const { error } = await supabase
-          .from('teams')
-          .update({ nom_robot: newNom || null })
-          .eq('id', team.id);
-        if (error) throw new Error(error.message);
-      }
+      if (!supabase) throw new Error("Supabase n'est pas configuré.");
 
-      // Mise à jour CT via l'API REST
-      const updated = await api.teams.updateControleTechnique(team.id, {
-        statut,
-        notes_technique: notes.trim() || null,
-      });
-      onUpdated({ ...updated, nom_robot: newNom || updated.nom_robot });
+      // Tout via Supabase directement (l'API REST NestJS n'est pas requise)
+      const { data, error } = await supabase
+        .from('teams')
+        .update({
+          nom_robot: newNom || null,
+          statut,
+          notes_technique: notes.trim() || null,
+        })
+        .eq('id', team.id)
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      onUpdated(data as Team);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Échec de la mise à jour.');
     } finally {
@@ -710,6 +713,7 @@ function TeamCardBody({
               setStatut(e.target.value as ControleTechniquePayload['statut'])
             }
           >
+            <option value="inscrit">Inscrit</option>
             <option value="controle_technique_ok">CT validé</option>
             <option value="disqualifie">Disqualifié</option>
           </select>
@@ -768,7 +772,7 @@ function TeamCardBody({
               className="btn btn-ghost"
               onClick={() => {
                 setNomRobot(team.nom_robot ?? '');
-                setStatut(team.statut === 'disqualifie' ? 'disqualifie' : 'controle_technique_ok');
+                setStatut(team.statut === 'disqualifie' ? 'disqualifie' : team.statut === 'inscrit' ? 'inscrit' : 'controle_technique_ok');
                 setNotes(team.notes_technique ?? '');
                 setSaveError(null);
               }}
