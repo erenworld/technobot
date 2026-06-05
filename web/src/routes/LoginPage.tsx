@@ -87,7 +87,7 @@ export function LoginPage() {
                   <input
                     id="password"
                     type="password"
-                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    autoComplete="current-password"
                     required
                     minLength={6}
                     value={password}
