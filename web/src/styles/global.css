@@ -879,6 +879,61 @@
     }
     .field-row.single { grid-template-columns: 1fr; }
     @media (max-width: 640px) { .field-row { grid-template-columns: 1fr; } }
+
+    /* ── Admin mobile ── */
+    @media (max-width: 640px) {
+      /* page header compact */
+      .page-head { padding: 32px 16px 24px; }
+      .page-head h1 { font-size: clamp(36px, 10vw, 56px); margin-bottom: 14px; }
+      .page-head p { font-size: 15px; }
+
+      /* form layout full-width */
+      .form-layout { padding: 0 12px 80px; gap: 24px; }
+      .form-main { min-width: 0; }
+      .form-section-head h2 { font-size: clamp(24px, 6vw, 36px); }
+
+      /* tabs → scrollable horizontally */
+      .events-tabs {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        width: 100%;
+      }
+      .events-tabs::-webkit-scrollbar { display: none; }
+      .events-tabs button { flex-shrink: 0; padding: 9px 14px; font-size: 13px; }
+
+      /* stats row: 2 columns max */
+      .admin-stat-row { grid-template-columns: repeat(2, 1fr) !important; }
+
+      /* planning slot cards */
+      .slot-card-timeline {
+        grid-template-columns: 72px 1fr !important;
+        gap: 10px !important;
+        padding: 12px !important;
+      }
+      .slot-card-timeline .slot-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .slot-card-badge { display: none; }
+
+      /* scoring form existing scores */
+      .score-existing-row { grid-template-columns: 1fr auto !important; }
+      .score-existing-row .score-actions { grid-column: 1 / -1; }
+
+      /* classement ranking card */
+      .rank-card-grid { grid-template-columns: 40px 1fr auto !important; }
+      .rank-pts-label { display: none; }
+
+      /* btn sizes in forms */
+      .form-section .btn { padding: 10px 16px; font-size: 14px; }
+    }
+
     .field {
       position: relative;
       background: var(--paper);
