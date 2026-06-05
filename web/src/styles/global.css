@@ -1570,13 +1570,13 @@
     }
     .spec-table tr:last-child td { border-bottom: none; }
     .spec-table .total {
-      background: var(--ink);
-      color: var(--paper);
+      background: transparent;
+      border-top: 2px solid var(--red);
     }
     .spec-table .total td {
-      color: var(--paper);
+      color: var(--red);
       font-family: var(--ff-display);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 18px;
       border: none;
     }
@@ -1608,10 +1608,9 @@
       font-family: var(--ff-display);
       font-weight: 700;
       font-size: 28px;
-      color: var(--ink);
+      color: var(--red);
       letter-spacing: -0.02em;
     }
-    .ranking-cell.top1 .pts { color: var(--red); }
     @media (max-width: 640px) { .ranking-grid { grid-template-columns: repeat(2, 1fr); } }
 
     /* Footer shared */
