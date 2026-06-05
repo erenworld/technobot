@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useEtablissements } from '../lib/useEtablissements';
-import { Epreuve, EpreuveDB, PlanningSlot, Team } from '../types/api';
+import { Categorie, Epreuve, EpreuveDB, PlanningSlot, Team } from '../types/api';
 import { AdminScoringForm } from './AdminScoringForm';
 
 /**
@@ -41,6 +41,22 @@ const EPREUVE_ORDER: Epreuve[] = [
 /** Design et présentation utilisent heure_presentation (créneau ponctuel). */
 function isPresentation(epreuve: Epreuve) {
   return epreuve === 'design' || epreuve === 'presentation_projet';
+}
+
+function scoreTableForSlot(epreuveType: Epreuve, categorie: Categorie): string | null {
+  if (epreuveType === 'design') return 'scores_design';
+  if (epreuveType === 'presentation_projet' && categorie === 'college') return 'scores_presentation_colleges';
+  if (epreuveType === 'presentation_projet' && categorie === 'lycee') return 'scores_presentation_lycees';
+  if (epreuveType === 'suivi_ligne') return 'scores_suivi_ligne';
+  if (epreuveType === 'formule_robot' || epreuveType === 'sumo') return 'scores_classement';
+  return null;
+}
+
+function isSlotScored(teamId: string | null, epreuveType: Epreuve, categorie: Categorie | undefined, scoredSet: Set<string>): boolean {
+  if (!teamId || !categorie) return false;
+  const table = scoreTableForSlot(epreuveType, categorie);
+  if (!table) return false;
+  return scoredSet.has(`${teamId}__${table}`);
 }
 
 type SlotForm = {
@@ -93,6 +109,7 @@ export function AdminPlanning() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [scoredSet, setScoredSet] = useState<Set<string>>(new Set());
 
   const etabs = useEtablissements();
 
@@ -132,6 +149,26 @@ export function AdminPlanning() {
         setLoadingSlots(false);
       });
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const tables = [
+      'scores_design',
+      'scores_presentation_colleges',
+      'scores_presentation_lycees',
+      'scores_suivi_ligne',
+      'scores_classement',
+    ] as const;
+    Promise.all(tables.map((t) => supabase!.from(t).select('team_id'))).then((results) => {
+      const set = new Set<string>();
+      results.forEach((res, i) => {
+        for (const row of res.data ?? []) {
+          if (row.team_id) set.add(`${row.team_id}__${tables[i]}`);
+        }
+      });
+      setScoredSet(set);
+    });
   }, []);
 
   const loading = loadingTeams || loadingEpreuves || loadingSlots;
@@ -364,6 +401,7 @@ export function AdminPlanning() {
               deletingId={deletingId}
               editingSlot={editingSlot}
               scoringSlotId={scoringSlotId}
+              scoredSet={scoredSet}
               onEdit={openEditForm}
               onDelete={deleteSlot}
               onScore={openScoring}
@@ -388,6 +426,7 @@ export function AdminPlanning() {
               editingSlot={editingSlot}
               scoringSlotId={scoringSlotId}
               deletingId={deletingId}
+              scoredSet={scoredSet}
               form={form}
               setForm={setForm}
               formError={formError}
@@ -410,7 +449,7 @@ export function AdminPlanning() {
 /* ============================= Vue complète (timeline) ============================= */
 
 function TimelineView({
-  entries, teamById, etabsById, deletingId, editingSlot, scoringSlotId, onEdit, onDelete, onScore, onCloseScoring,
+  entries, teamById, etabsById, deletingId, editingSlot, scoringSlotId, scoredSet, onEdit, onDelete, onScore, onCloseScoring,
   form, setForm, formError, saving, onSave, onCancel,
 }: {
   entries: { slot: PlanningSlot; epreuveType: Epreuve }[];
@@ -419,6 +458,7 @@ function TimelineView({
   deletingId: string | null;
   editingSlot: PlanningSlot | null;
   scoringSlotId: string | null;
+  scoredSet: Set<string>;
   onEdit: (s: PlanningSlot, type: Epreuve) => void;
   onDelete: (id: string) => void;
   onScore: (slotId: string) => void;
@@ -447,6 +487,7 @@ function TimelineView({
         const isEditing = editingSlot?.id === slot.id;
         const isScoring = scoringSlotId === slot.id;
         const timeDisplay = slotDisplayTime(slot, epreuveType);
+        const scored = isSlotScored(slot.team_id, epreuveType, team?.categorie, scoredSet);
 
         return (
           <div key={slot.id}>
@@ -455,8 +496,8 @@ function TimelineView({
               gridTemplateColumns: '100px 1fr auto auto',
               alignItems: 'center',
               gap: 14,
-              background: 'var(--paper)',
-              border: `1px solid ${isEditing || isScoring ? 'var(--ink-2)' : 'var(--line)'}`,
+              background: scored ? 'rgba(34, 197, 94, 0.08)' : 'var(--paper)',
+              border: `1px solid ${isEditing || isScoring ? 'var(--ink-2)' : scored ? 'rgba(34, 197, 94, 0.35)' : 'var(--line)'}`,
               borderRadius: 'var(--radius)',
               padding: '12px 16px',
             }}>
@@ -519,7 +560,7 @@ function TimelineView({
 /* ============================= Vue par épreuve ============================= */
 
 function EpreuveView({
-  epreuve, teams, slotByTeam, epreuveById, etabsById, addingForTeam, editingSlot, scoringSlotId, deletingId,
+  epreuve, teams, slotByTeam, epreuveById, etabsById, addingForTeam, editingSlot, scoringSlotId, deletingId, scoredSet,
   form, setForm, formError, saving, onAdd, onEdit, onDelete, onScore, onCloseScoring, onSave, onCancel,
 }: {
   epreuve: Epreuve;
@@ -531,6 +572,7 @@ function EpreuveView({
   editingSlot: PlanningSlot | null;
   scoringSlotId: string | null;
   deletingId: string | null;
+  scoredSet: Set<string>;
   form: SlotForm;
   setForm: React.Dispatch<React.SetStateAction<SlotForm>>;
   formError: string | null;
@@ -605,13 +647,15 @@ function EpreuveView({
                   const isEditing = editingSlot?.id === slot.id;
                   const isScoring = scoringSlotId === slot.id;
                   const timeDisplay = slotDisplayTime(slot, epType);
+                  const scored = isSlotScored(slot.team_id, epType, team.categorie, scoredSet);
                   return (
                     <div key={slot.id}>
                       <div style={{
                         display: 'grid', gridTemplateColumns: '1fr auto',
                         alignItems: 'center', gap: 12, padding: '10px 18px',
-                        background: isEditing || isScoring ? 'var(--cream-2)' : 'transparent',
+                        background: isEditing || isScoring ? 'var(--cream-2)' : scored ? 'rgba(34, 197, 94, 0.08)' : 'transparent',
                         borderBottom: '1px solid var(--line)',
+                        borderLeft: scored && !isEditing && !isScoring ? '3px solid rgba(34, 197, 94, 0.5)' : undefined,
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <span style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 13 }}>{timeDisplay}</span>
