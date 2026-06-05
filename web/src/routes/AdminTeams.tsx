@@ -432,20 +432,7 @@ function TeamCard({
       <button
         type="button"
         onClick={onToggle}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '80px 1fr auto auto 24px',
-          alignItems: 'center',
-          gap: 16,
-          width: '100%',
-          padding: '14px 18px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-          color: 'inherit',
-          font: 'inherit',
-        }}
+        className="team-card-btn"
       >
         <span
           style={{
@@ -487,15 +474,7 @@ function TeamCard({
             {etabLine}
           </div>
         </div>
-        <span
-          style={{
-            fontFamily: 'var(--ff-mono)',
-            fontSize: 12,
-            color: 'var(--muted)',
-            textTransform: 'uppercase',
-            letterSpacing: 0.4,
-          }}
-        >
+        <span className="team-card-epreuve">
           {EPREUVE_LABELS[team.epreuve]} · {team.categorie}
         </span>
         <StatusBadge statut={team.statut} />

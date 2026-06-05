@@ -319,31 +319,75 @@ export function ScoreboardPage() {
               {/* Lignes */}
               {zoneSlots.map((slot) => {
                 const status = getStatus(slot, nowMins);
-                const rowCls = status === 'done' ? 'done' : status === 'now' ? 'now' : '';
+                const isNow = status === 'now';
+                const isDone = status === 'done';
                 const end = slotEnd(slot);
                 return (
                   <div
                     key={slot.id}
-                    className={`current-row${rowCls ? ' ' + rowCls : ''}`}
-                    style={{ padding: '14px 20px', gridTemplateColumns: '56px 1fr auto', gap: 14 }}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '56px 1fr auto',
+                      gap: 14,
+                      alignItems: 'center',
+                      padding: '14px 20px',
+                      borderBottom: `1px solid ${isNow ? 'rgba(255,74,66,.2)' : 'var(--line)'}`,
+                      background: isNow ? 'linear-gradient(90deg,rgba(255,74,66,.08),transparent)' : 'transparent',
+                      opacity: isDone ? 0.5 : 1,
+                      transition: 'background .25s',
+                    }}
                   >
+                    {/* Heure */}
                     <div>
-                      <div className="current-time">{slotStart(slot)}</div>
-                      {end && <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>→{end}</div>}
+                      <div style={{
+                        fontFamily: 'var(--ff-mono)',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: isNow ? 'var(--red)' : isDone ? 'var(--muted)' : 'var(--ink-2)',
+                        textDecoration: isDone ? 'line-through' : 'none',
+                      }}>
+                        {slotStart(slot)}
+                      </div>
+                      {end && (
+                        <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                          →{end}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Robot */}
                     <div>
-                      <div className="current-team">{slot.teamNom}</div>
-                      <div className="current-immat">
+                      <div style={{
+                        fontFamily: 'var(--ff-display)',
+                        fontSize: 17,
+                        fontWeight: 500,
+                        letterSpacing: '-0.01em',
+                        color: isDone ? 'var(--muted)' : 'var(--ink)',
+                      }}>
+                        {slot.teamNom}
+                      </div>
+                      <div style={{
+                        fontFamily: 'var(--ff-mono)',
+                        fontSize: 12,
+                        color: 'var(--muted)',
+                        fontWeight: 500,
+                      }}>
                         {slot.epreuveLabel}{slot.teamImmat ? ` · ${slot.teamImmat}` : ''}
                       </div>
                     </div>
-                    {status === 'now' && (
-                      <div className="current-result" style={{ display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+
+                    {/* Statut */}
+                    {isNow && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--ff-mono)', fontSize: 13, fontWeight: 600, color: 'var(--yellow)', whiteSpace: 'nowrap' }}>
                         <span className="live-dot" style={{ width: 6, height: 6 }} />LIVE
                       </div>
                     )}
-                    {status === 'done' && <div className="current-result done">✓</div>}
-                    {status === 'pending' && <div className="current-result pending">—</div>}
+                    {isDone && (
+                      <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>✓</div>
+                    )}
+                    {!isNow && !isDone && (
+                      <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 13, color: 'var(--muted)' }}>—</div>
+                    )}
                   </div>
                 );
               })}
