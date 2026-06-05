@@ -318,7 +318,7 @@ export function AdminPlanning() {
           </div>
 
           {!loading && !error && (
-            <div style={statRowStyle}>
+            <div className="admin-stat-row" style={statRowStyle}>
               <StatCard label="Créneaux planifiés" value={stats.total} />
               {EPREUVE_ORDER.map((ep) => (
                 <StatCard
@@ -450,7 +450,7 @@ function TimelineView({
 
         return (
           <div key={slot.id}>
-            <div style={{
+            <div className="slot-card-timeline" style={{
               display: 'grid',
               gridTemplateColumns: '100px 1fr auto auto',
               alignItems: 'center',
@@ -463,21 +463,21 @@ function TimelineView({
               <div style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 13 }}>
                 {timeDisplay}
               </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {team?.nom_robot ?? <em style={{ color: 'var(--muted)' }}>Équipe inconnue</em>}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--muted)' }}>{etabName}</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{etabName}</div>
+                <div style={{ marginTop: 2 }}>
+                  <EpreuveBadge epreuve={epreuveType} />
+                  {(slot.zone_rencontres || slot.salle_presentation) && (
+                    <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)', marginLeft: 6 }}>
+                      {slot.zone_rencontres ?? slot.salle_presentation}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                <EpreuveBadge epreuve={epreuveType} />
-                {(slot.zone_rencontres || slot.salle_presentation) && (
-                  <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)' }}>
-                    {slot.zone_rencontres ?? slot.salle_presentation}
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div className="slot-actions" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {team && slot.epreuve_id && (
                   <button type="button" className="btn btn-primary"
                     style={{ padding: '6px 12px', fontSize: 12, background: isScoring ? 'var(--muted)' : 'var(--green)', borderColor: isScoring ? 'var(--muted)' : 'var(--green)' }}
@@ -690,7 +690,7 @@ function SlotFormInline({ form, setForm, formError, saving, onSave, onCancel, is
         {isEdit ? '// Modifier le créneau' : '// Nouveau créneau'}
       </div>
 
-      <div className="field-row" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+      <div className="field-row">
         {pres ? (
           <div className="field">
             <label>Heure de passage</label>

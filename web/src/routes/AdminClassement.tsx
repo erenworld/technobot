@@ -225,11 +225,10 @@ export function AdminClassement() {
           </div>
 
           {/* Barre de filtres */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 28 }}>
+          <div className="events-tabs" role="tablist" style={{ marginBottom: 28 }}>
             {(Object.keys(FILTER_LABELS) as ClassFilter[]).map((f) => (
-              <button key={f} type="button"
-                className={filter === f ? 'btn btn-primary' : 'btn btn-ghost'}
-                style={{ padding: '8px 16px', fontSize: 13 }}
+              <button key={f} type="button" role="tab"
+                className={filter === f ? 'active' : ''}
                 onClick={() => setFilter(f)}>
                 {FILTER_LABELS[f]}
               </button>
@@ -281,9 +280,9 @@ function TeamRanking({ entries, subtitle }: { entries: RankEntry[]; subtitle: st
       <div className="field-group-title">{subtitle} · {entries.length} équipe{entries.length > 1 ? 's' : ''}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {entries.map((e) => (
-          <div key={e.teamId} style={{
+          <div key={e.teamId} className="rank-card-grid" style={{
             display: 'grid',
-            gridTemplateColumns: '48px 40px 1fr 100px',
+            gridTemplateColumns: '40px 1fr auto',
             alignItems: 'center',
             gap: 12,
             background: e.rang <= 3 ? podiumBg(e.rang) : 'var(--paper)',
@@ -294,14 +293,14 @@ function TeamRanking({ entries, subtitle }: { entries: RankEntry[]; subtitle: st
             <div style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 18, color: e.rang <= 3 ? podiumColor(e.rang) : 'var(--muted)', textAlign: 'center' }}>
               {e.rang === 1 ? '🥇' : e.rang === 2 ? '🥈' : e.rang === 3 ? '🥉' : `${e.rang}`}
             </div>
-            <div style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', textAlign: 'right' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.nomRobot}</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.etab}</div>
+            </div>
+            <div style={{ fontFamily: 'var(--ff-mono)', fontWeight: 700, fontSize: 20, color: 'var(--ink)', textAlign: 'right', whiteSpace: 'nowrap' }}>
               {typeof e.score === 'number' ? Math.round(e.score * 100) / 100 : e.score}
+              <span className="rank-pts-label" style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)', marginLeft: 4 }}>pts</span>
             </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{e.nomRobot}</div>
-              <div style={{ fontSize: 12, color: 'var(--muted)' }}>{e.etab}</div>
-            </div>
-            <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)', textAlign: 'right' }}>pts</div>
           </div>
         ))}
       </div>

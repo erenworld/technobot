@@ -179,10 +179,7 @@ export function AdminTeams() {
 
           {/* Filtres */}
           <div className="field-group-title">Filtres</div>
-          <div
-            className="field-row"
-            style={{ gridTemplateColumns: '1fr 1fr 1fr 1.5fr' }}
-          >
+          <div className="field-row">
             <div className="field">
               <label htmlFor="filter-categorie">Catégorie</label>
               <select

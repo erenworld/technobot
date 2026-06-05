@@ -228,7 +228,7 @@ export function AdminScoringForm({
             Notes enregistrées ({existing.length})
           </div>
           {existing.map((s) => (
-            <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: '1px solid var(--line)', background: 'var(--paper)' }}>
+            <div key={s.id} className="score-existing-row" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '10px 14px', borderBottom: '1px solid var(--line)', background: 'var(--paper)' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{s.label}</div>
                 <div style={{ fontFamily: 'var(--ff-mono)', fontSize: 11, color: 'var(--muted)' }}>{fmtDate(s.createdAt)}</div>
@@ -687,7 +687,7 @@ function ClassementForm({
           À partir de la {exAequoAfter + 1}e place, plusieurs équipes peuvent avoir le même rang.
         </div>
       )}
-      <div className="field-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <div className="field-row">
         <div className="field">
           <label>Rang obtenu</label>
           <select value={rang} onChange={(e) => setRang(Number(e.target.value))}>
