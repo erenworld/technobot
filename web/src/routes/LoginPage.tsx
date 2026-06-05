@@ -5,16 +5,13 @@ import { FooterCompact } from '../components/Footer';
 import { useAuth } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 
-type Mode = 'login' | 'register';
-
 type LocationState = { from?: { pathname?: string } };
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, session } = useAuth();
+  const { signIn, session } = useAuth();
 
-  const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,18 +33,9 @@ export function LoginPage() {
     setError(null);
     setInfo(null);
     try {
-      if (mode === 'login') {
-        await signIn(email, password);
-        const from = (location.state as LocationState | null)?.from?.pathname ?? '/';
-        navigate(from, { replace: true });
-      } else {
-        const { needsConfirm } = await signUp(email, password);
-        if (needsConfirm) {
-          setInfo('Compte créé. Vérifie tes emails pour confirmer ton adresse.');
-        } else {
-          navigate('/', { replace: true });
-        }
-      }
+      await signIn(email, password);
+      const from = (location.state as LocationState | null)?.from?.pathname ?? '/';
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue.');
     } finally {
@@ -72,38 +60,9 @@ export function LoginPage() {
           <div className="form-section active">
             <div className="form-section-head">
               <div className="form-section-eyebrow">
-                // {mode === 'login' ? 'Connexion' : 'Inscription'}
+                // Connexion
               </div>
-              <h2>{mode === 'login' ? 'Identifiants' : 'Vos infos'}</h2>
-            </div>
-
-            <div
-              className="events-tabs"
-              role="tablist"
-              style={{ marginBottom: 28 }}
-            >
-              <button
-                type="button"
-                className={mode === 'login' ? 'active' : ''}
-                onClick={() => {
-                  setMode('login');
-                  setError(null);
-                  setInfo(null);
-                }}
-              >
-                Se connecter
-              </button>
-              <button
-                type="button"
-                className={mode === 'register' ? 'active' : ''}
-                onClick={() => {
-                  setMode('register');
-                  setError(null);
-                  setInfo(null);
-                }}
-              >
-                Créer un compte
-              </button>
+              <h2>Identifiants</h2>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -159,16 +118,10 @@ export function LoginPage() {
                   Retour
                 </Link>
                 <span className="step-indicator">
-                  {mode === 'login' ? 'Identifiants requis' : 'Création de compte'}
+                  Identifiants requis
                 </span>
                 <button type="submit" className="btn btn-primary next" disabled={loading}>
-                  {loading
-                    ? mode === 'login'
-                      ? 'Connexion…'
-                      : 'Création…'
-                    : mode === 'login'
-                      ? 'Se connecter'
-                      : 'Créer le compte'}
+                  {loading ? 'Connexion…' : 'Se connecter'}
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
