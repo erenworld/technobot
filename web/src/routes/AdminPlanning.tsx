@@ -146,9 +146,12 @@ export function AdminPlanning() {
       // Clé précise : type + categorie + edition
       const full = `${ep.type}__${ep.categorie ?? ''}__${ep.edition_id ?? ''}`;
       map[full] = ep;
-      // Clé de fallback sans edition (au cas où edition_id NULL)
+      // Fallback sans edition
       const noEd = `${ep.type}__${ep.categorie ?? ''}`;
       if (!map[noEd]) map[noEd] = ep;
+      // Fallback sans catégorie (couvre le cas où la catégorie est NULL en base)
+      const typeOnly = `${ep.type}`;
+      if (!map[typeOnly]) map[typeOnly] = ep;
     }
     return map;
   }, [epreuves]);
@@ -160,9 +163,10 @@ export function AdminPlanning() {
   }, [epreuves]);
 
   function getEpreuveId(team: Team): string | null {
-    const full = `${team.epreuve}__${team.categorie}__${team.edition_id ?? ''}`;
-    const noEd = `${team.epreuve}__${team.categorie}`;
-    const match = epreuveByKey[full] ?? epreuveByKey[noEd];
+    const full  = `${team.epreuve}__${team.categorie}__${team.edition_id ?? ''}`;
+    const noEd  = `${team.epreuve}__${team.categorie}`;
+    const anyCateg = team.epreuve; // dernier fallback : type seul
+    const match = epreuveByKey[full] ?? epreuveByKey[noEd] ?? epreuveByKey[anyCateg];
     return match?.id ?? null;
   }
 
